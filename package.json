@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@vueuse/core": "^11.1.0",
+    "@vueuse/integrations": "^11.1.0",
+    "change-case": "^5.4.4",
     "lucide-vue-next": "^0.447.0",
     "vue": "^3.4.34"
   },
