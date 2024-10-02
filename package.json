@@ -1,6 +1,6 @@
 {
-  "name": "wxt-vue-starter",
-  "description": "manifest.json description",
+  "name": "UFABC-utils",
+  "description": "Uma extensão que corrige e adiciona umas coisinhas a interface de sistemas da UFABC",
   "private": true,
   "version": "0.0.0",
   "type": "module",
