@@ -1,4 +1,5 @@
 import { normalizeDiacritics } from "@/utils/removeDiacritics";
+import { waitForElement } from "@/utils/waitForElement";
 import { useFetch } from "@vueuse/core";
 import { useChangeCase } from "@vueuse/integrations/useChangeCase";
 
@@ -57,4 +58,30 @@ export async function retrieveStudent(
 	};
 
 	return student;
+}
+
+export async function scrapeMenu() {
+	try {
+		const triggerEl = document.querySelector("td.ThemeOfficeMainItem");
+
+		if (!triggerEl) {
+			throw new Error("Trigger element not found");
+		}
+
+		triggerEl.dispatchEvent(
+			new MouseEvent("mouseover", {
+				bubbles: true,
+				cancelable: true,
+				view: window,
+			}),
+		);
+
+		const menuItem = await waitForElement(
+			"tr.ThemeOfficeMenuItem td.ThemeOfficeMenuItemText",
+		);
+		console.log(menuItem.innerText.trim());
+	} catch (error) {
+		console.error("menuItem", error);
+		return null;
+	}
 }

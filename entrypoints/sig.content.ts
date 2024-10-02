@@ -1,5 +1,5 @@
 import { handleItinerary } from "@/scripts/sig/itinerary";
-import { retrieveStudent } from "@/scripts/sig/logged";
+import { retrieveStudent, scrapeMenu } from "@/scripts/sig/logged";
 
 export default defineContentScript({
 	async main() {
@@ -16,7 +16,7 @@ export default defineContentScript({
 		if (shouldFormatItinerary) {
 			handleItinerary(itineraryTable);
 			const student = await retrieveStudent($trs);
-			console.log(student);
+			await scrapeMenu();
 		}
 	},
 	runAt: "document_start",
