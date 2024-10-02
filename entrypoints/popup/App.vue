@@ -1,17 +1,61 @@
 <script lang="ts" setup>
-import HelloWorld from '@/components/HelloWorld.vue';
+import { Loader2 } from 'lucide-vue-next'
+const loading = ref(true)
+const error = ref(false)
 </script>
 
 <template>
-  <div>
-    <a href="https://wxt.dev" target="_blank">
-      <img src="/wxt.svg" class="logo" alt="WXT logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="@/assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="w-64 p-4">
+    <img src="/wxt.svg" class="h-8 w-36" alt="WXT logo" />
+
+    <main class="mt-4 text-sm">
+      <div class="flex items-center justify-center h-[4.4rem]" v-if="loading">
+        <Loader2 class="h-4 w-4 animate-spin" />
+        <span class="ml-2">Carregando informações...</span>
+      </div>
+
+      <div v-else-if="error">
+        Aconteceu um erro ao carregar suas informações. 😬
+        <br /><br />
+        Caso o error persistir, entre em contato conosco pelo <a href='https://instagram.com/ufabc_next' target='_blank'>Instagram</a>
+        <button class="flex items-center justify-center mt-2 py-2.5 p-4 text-sm bg-[#2E7EED] text-white rounded-[0.5rem] cursor-pointer">
+          Recarregar
+        </button>
+      </div>
+
+      <div v-else-if="false">
+        <p class="mb-2">Esses sao seus dados</p>
+        <section class="mb-2 border border-solid border-b-gray-400 rounded p-1.5">
+          <div class="flex mb-2">
+            <h3 class="font-bold flex-auto">Joabe</h3>
+            <span class="flex-none text-right text-sm">11202232364</span>
+          </div>
+          <template v-if="student?.cursos?.length">
+            <div class="mb-2 border border-solid border-[#efefef] rounded p-1.5">
+              <div class="text-sm mb-1">
+                {{ 'Bacharelado em comp' }}<br />
+                <b>{{ 'Noturno' }}</b>
+              </div>
+              <div class="flex">
+                <span class="flex-1 text-sm text-left text-[#c78d00]">CP: {{ 0 }}</span>
+                <span class="flex-1 text-sm text-center text-[#05C218]">CR: {{ 0 }}</span>
+                <span class="flex-1 text-sm text-right text-[#2E7EED]">CA: {{ 0 }}</span>
+              </div>
+            </div>
+          </template>
+        </section>
+      </div>
+
+      <template v-else>
+        <p>Seja bem-vindo à extensão do UFABC next.</p>
+        <p style="margin-bottom: 5px;">Parece que nós não temos suas informações, <a href='https://sig.ufabc.edu.br/sigaa/portais/discente/discente.jsf' target='_blank'>vamos carregá-las?</a></p>
+      </template>
+
+      <div class="text-center">
+        <a href='https://bit.ly/extensao-problemas' target='_blank'>Está com problemas com a extensão? <br />Clique aqui</a>
+      </div>
+    </main>
   </div>
-  <HelloWorld msg="WXT + Vue" />
 </template>
 
 <style scoped>
