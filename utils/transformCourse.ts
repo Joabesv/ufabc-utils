@@ -7,6 +7,8 @@ type SigaaCourseSplitted = [
 	UFABC_GRADUATION_TYPE | undefined,
 ];
 
+export type Course = ReturnType<typeof transformCourseName>;
+
 const KNOWN_COURSES = {
 	prograd: {
 		bi: {
