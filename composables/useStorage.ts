@@ -4,7 +4,7 @@ import { computed, onMounted, onUnmounted } from "vue";
 
 export function useStorage<T>(
 	key: StorageItemKey,
-	initialValue: T,
+	initialValue?: T,
 	opts?: UseAsyncStateOptions<true, T | null>,
 ) {
 	const {

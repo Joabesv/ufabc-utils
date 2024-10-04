@@ -35,7 +35,7 @@ type Component = {
 	period: "1" | "2" | "3";
 };
 
-type Student = {
+export type Student = {
 	name: string;
 	ra: string;
 	login: string;
@@ -47,6 +47,7 @@ type Student = {
 		components: Component[];
 	};
 	startedAt: string;
+	lastUpdate: number;
 };
 
 export async function retrieveStudent(
@@ -90,8 +91,6 @@ export async function retrieveStudent(
 		startedAt: rawStudent.entrada,
 	};
 
-	type ShallowStudent = typeof student;
-
 	return student;
 }
 
@@ -127,6 +126,7 @@ export async function scrapeMenu(
 			...shallowStudent.graduation,
 			components: graduationHistory,
 		},
+		lastUpdate: Date.now(),
 	};
 
 	return student;
