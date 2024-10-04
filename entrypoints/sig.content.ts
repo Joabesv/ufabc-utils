@@ -1,6 +1,8 @@
 import { storage } from "wxt/storage";
 import { handleItinerary } from "@/scripts/sig/itinerary";
 import { scrapeMenu } from "@/scripts/sig/homepage";
+import { successToast } from "@/utils/toasts";
+import "toastify-js/src/toastify.css";
 
 export default defineContentScript({
 	async main() {
@@ -18,7 +20,8 @@ export default defineContentScript({
 			const student = await scrapeMenu($trs);
 			storage.setItem("sync:student", student);
 			// add toast
-			console.log("sucessfully scrapped student!");
+			console.log(successToast.toastElement);
+			successToast.showToast();
 		}
 	},
 	runAt: "document_end",

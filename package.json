@@ -19,10 +19,12 @@
     "@vueuse/integrations": "^11.1.0",
     "change-case": "^5.4.4",
     "lucide-vue-next": "^0.447.0",
+    "toastify-js": "^1.12.0",
     "vue": "^3.4.34"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
+    "@types/toastify-js": "^1.12.3",
     "@wxt-dev/module-vue": "^1.0.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
