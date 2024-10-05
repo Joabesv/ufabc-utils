@@ -1,6 +1,7 @@
 import { fetchGrades, getUFStudent } from "@/services/UFSigaa";
 import { normalizeDiacritics } from "@/utils/removeDiacritics";
 import { useChangeCase } from "@vueuse/integrations/useChangeCase";
+import { getUFCourses } from "@/services/UFParser";
 import type { Course } from "@/utils/transformCourse";
 
 type SigStudent = {
@@ -114,7 +115,8 @@ export async function scrapeMenu(
 
 	// biome-ignore lint/style/noNonNullAssertion: <explanation>
 	const graduationHistory = await scrapeStudentHistory(page!);
-
+	// const courses = await getUFCourses();
+	// console.log(courses);
 	if (!graduationHistory) {
 		console.log("error scrapping student history", graduationHistory);
 		return null;
@@ -129,12 +131,14 @@ export async function scrapeMenu(
 		lastUpdate: Date.now(),
 	};
 
+	console.log(student);
 	return student;
 }
 
 async function scrapeStudentHistory(page: string) {
 	const parser = new DOMParser();
 	const gradesDocument = parser.parseFromString(page, "text/html");
+	console.log(gradesDocument);
 	if (!gradesDocument.body) {
 		console.log("could not mount document", document);
 		return null;
