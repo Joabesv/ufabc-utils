@@ -9,7 +9,7 @@ type UFCourses = {
 };
 
 const ufParserService = ofetch.create({
-	baseURL: import.meta.env.UFABC_PARSER_URL,
+	baseURL: import.meta.env.VITE_UFABC_PARSER_URL,
 });
 
 const CACHE_KEY = "ufCoursesCache";
@@ -21,6 +21,7 @@ export async function getUFCourses() {
 	if (cachedCourses) {
 		return cachedCourses;
 	}
+	console.log(import.meta.env);
 	const courses = await ufParserService<UFCourses[]>("/courses");
 	await storage.setItem(`session:${CACHE_KEY}`, courses);
 	return courses;

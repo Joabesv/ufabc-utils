@@ -7,10 +7,6 @@ import "toastify-js/src/toastify.css";
 export default defineContentScript({
 	async main() {
 		// allow content script to use session storage
-		// @ts-expect-error: setAccessLevel not typed
-		// browser.storage.session.setAccessLevel({
-		// 	accessLevel: "TRUSTED_AND_UNTRUSTED_CONTEXTS",
-		// });
 		const sigURL = new URL(document.location.href);
 		const itineraryTable =
 			document.querySelector<HTMLTableElement>("#turmas-portal");

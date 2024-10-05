@@ -115,8 +115,11 @@ export async function scrapeMenu(
 
 	// biome-ignore lint/style/noNonNullAssertion: <explanation>
 	const graduationHistory = await scrapeStudentHistory(page!);
-	// const courses = await getUFCourses();
-	// console.log(courses);
+	const courses = await getUFCourses();
+	const studentGraduation = courses.find(
+		(course) =>
+			course.name === shallowStudent.graduation.course.toLocaleLowerCase(),
+	);
 	if (!graduationHistory) {
 		console.log("error scrapping student history", graduationHistory);
 		return null;
@@ -125,13 +128,13 @@ export async function scrapeMenu(
 	const student = {
 		...shallowStudent,
 		graduation: {
+			id: studentGraduation?.UFCourseId,
 			...shallowStudent.graduation,
 			components: graduationHistory,
 		},
 		lastUpdate: Date.now(),
 	};
 
-	console.log(student);
 	return student;
 }
 
