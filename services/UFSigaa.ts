@@ -1,4 +1,5 @@
 import { useFetch } from "@vueuse/core";
+import { storage } from 'wxt/storage'
 
 type NTIStudent = {
 	firstname: string;
@@ -7,6 +8,8 @@ type NTIStudent = {
 	username: string;
 	email: string[];
 };
+
+const CACHE_KEY = "NTI_STUDENT";
 
 export async function fetchGrades() {
 	const sigURL = "/sigaa/portais/discente/discente.jsf";
@@ -43,9 +46,19 @@ export async function fetchGrades() {
 }
 
 export async function getUFStudent(ra: string) {
+	const cachedNTIStudent = await storage.getItem<NTIStudent>(
+		`session:${CACHE_KEY}`,
+	);
+
+	if (cachedNTIStudent) {
+		return cachedNTIStudent;
+	}
+
 	const { data: student, error } = await useFetch(
 		`https://sig.ufabc.edu.br/sigaa/APISistemasNTI?funcao=2&valor=${ra}`,
 	).json<NTIStudent>();
+
+	await storage.setItem(`session:${CACHE_KEY}`, student.value)
 
 	if (error.value) {
 		return {

@@ -19,8 +19,6 @@ const formattedDate = computed(() => {
 async function fetchStudentData() {
   const { state: storageStudent, isLoading, error: storageError } = await useStorage<Student>('sync:student')
   
-  console.log(storageStudent.value)
-
   loading.value = isLoading.value
 
   try {

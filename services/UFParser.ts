@@ -21,7 +21,6 @@ export async function getUFCourses() {
 	if (cachedCourses) {
 		return cachedCourses;
 	}
-	console.log(import.meta.env);
 	const courses = await ufParserService<UFCourses[]>("/courses");
 	await storage.setItem(`session:${CACHE_KEY}`, courses);
 	return courses;
