@@ -1,7 +1,7 @@
 import { fetchGrades, getUFStudent } from "@/services/UFSigaa";
 import { normalizeDiacritics } from "@/utils/removeDiacritics";
 import { useChangeCase } from "@vueuse/integrations/useChangeCase";
-import { getUFCourses } from "@/services/UFParser";
+import { getUFCourseCurriculums, getUFCourses, getUFCurriculumComponents, UFComponent, UFCourseCurriculum } from "@/services/UFParser";
 import type { Course } from "@/utils/transformCourse";
 
 type SigStudent = {
@@ -35,6 +35,11 @@ type Component = {
 	year: string;
 	period: "1" | "2" | "3";
 };
+
+type HydratedComponent = Component & {
+	credits: number;
+	category : 'free' | 'mandatory' | 'limited'
+}
 
 export type Student = {
 	name: string;
@@ -120,17 +125,32 @@ export async function scrapeMenu(
 		(course) =>
 			course.name === shallowStudent.graduation.course.toLocaleLowerCase(),
 	);
+
+	if (!studentGraduation) {
+		console.log('error finding student graduation', shallowStudent.graduation)
+		return null
+	}
+
+	const graduationCurriculums = await getUFCourseCurriculums(studentGraduation.UFcourseId)
+	console.log('aqui', graduationCurriculums)
+	const curriculumByRa = resolveCurriculum(shallowStudent.ra, graduationCurriculums)
+	if (!curriculumByRa) {
+		return null
+	}
+
 	if (!graduationHistory) {
 		console.log("error scrapping student history", graduationHistory);
 		return null;
 	}
+	const curriculumComponents = await getUFCurriculumComponents(studentGraduation.UFcourseId, curriculumByRa?.year);
+	const beauty = graduationHistory.map(component => hydrateComponents(component, curriculumComponents.components))
 
 	const student = {
 		...shallowStudent,
 		graduation: {
-			id: studentGraduation?.UFCourseId,
+			id: studentGraduation?.UFcourseId,
 			...shallowStudent.graduation,
-			components: graduationHistory,
+			components: beauty,
 		},
 		lastUpdate: Date.now(),
 	};
@@ -141,7 +161,6 @@ export async function scrapeMenu(
 async function scrapeStudentHistory(page: string) {
 	const parser = new DOMParser();
 	const gradesDocument = parser.parseFromString(page, "text/html");
-	console.log(gradesDocument);
 	if (!gradesDocument.body) {
 		console.log("could not mount document", document);
 		return null;
@@ -205,4 +224,33 @@ function extractHeaders(table: HTMLTableElement) {
 	return headerCells
 		.map((cell) => normalizeDiacritics(cell.innerText))
 		.filter((header) => wantedFields.includes(header));
+}
+
+function resolveCurriculum(ra: string, curriculums: UFCourseCurriculum[]) {
+	const raYear = ra.slice(2, 6);
+  const sortedCurriculums = curriculums.sort((a, b) => Number.parseInt(b.year) - Number.parseInt(a.year));
+	const appropriateCurriculum = sortedCurriculums.find(curriculum => Number.parseInt(curriculum.year) <= Number.parseInt(raYear));
+  return appropriateCurriculum;
+}
+
+function hydrateComponents(sigComponent: Component, curriculumComponents: UFComponent[]): HydratedComponent {
+	const match = curriculumComponents.find(c => c.UFComponentCode === sigComponent.UFCode)
+	if(!match) {
+		return {
+			category: 'free',
+			credits: 0,
+			...sigComponent,
+		}
+	}
+
+	return {
+		name: match.name,
+		category: match.category,
+		credits: match.credits,
+		UFCode: match.UFComponentCode,
+		grade: sigComponent.grade,
+		period: sigComponent.period,
+		status: sigComponent.status,
+		year: sigComponent.year
+	}
 }

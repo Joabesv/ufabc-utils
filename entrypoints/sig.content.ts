@@ -19,6 +19,7 @@ export default defineContentScript({
 		if (shouldFormatItinerary) {
 			handleItinerary(itineraryTable);
 			const student = await scrapeMenu($trs);
+			console.log(student)
 			storage.setItem("sync:student", student);
 			successToast.showToast();
 		}
