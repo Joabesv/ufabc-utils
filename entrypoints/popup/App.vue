@@ -3,11 +3,13 @@ import { ref, onMounted } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
 import { useStorage } from '@/composables/useStorage'
 import { useDateFormat } from '@vueuse/core'
+import { calculateCoefficients, type ScopedCoefficients, summarizeCoefficients } from '@/utils/calculateCoefficients'
 import type { Student } from '@/scripts/sig/homepage'
 
 const student = ref<Student | null>(null)
 const loading = ref(true)
 const error = ref(false)
+const studentCoefficients = ref<ScopedCoefficients>()
 
 const formattedDate = computed(() => {
   if (student.value?.lastUpdate) {
@@ -23,7 +25,13 @@ async function fetchStudentData() {
 
   try {
     student.value = storageStudent.value
-    error.value = storageError.value
+    if (!student.value) {
+      return;
+    }
+    const coefficients = calculateStudentCoefficients(student.value.graduation)
+    studentCoefficients.value = coefficients
+    error.value = !!storageError.value
+    console.log('error calling storage: ', storageError.value)
   } catch(err) {
     error.value = true
     console.error('Error fetching student data:', err)
@@ -37,6 +45,25 @@ function reloadData() {
   error.value = false
   fetchStudentData()
 }
+
+function calculateStudentCoefficients(graduation: Student['graduation']) {
+  const mocked2017BCT = {
+    curso: "Bacharelado em Ciência e Tecnologia",
+    grade: "2017",
+    creditsTotal: 190,
+    freeCredits: 43,
+    limitedCredits: 57, 
+    mandatoryCredits: 90
+  }
+
+
+  const graduationTotalCoefficients = calculateCoefficients(graduation.components, mocked2017BCT)
+  const studentCoefficients = summarizeCoefficients(graduationTotalCoefficients)
+  return studentCoefficients
+}
+
+
+console.log(studentCoefficients.value)
 
 
 onMounted(() => {
@@ -70,16 +97,16 @@ onMounted(() => {
             <h3 class="font-bold flex-auto">{{ student.login }}</h3>
             <span class="flex-none text-right text-sm">{{ student.ra }}</span>
           </div>
-          <template v-if="student.graduation">
+          <template v-if="studentCoefficients && student.graduation">
             <div class="mb-2 border border-solid border-[#efefef] rounded p-1.5">
               <div class="text-sm mb-1">
                 {{ student.graduation.course }}<br />
                 <b>{{ student.graduation.shift }}</b>
               </div>
               <div class="flex">
-                <span class="flex-1 text-sm text-left text-[#c78d00]">CP: {{ 1 }}</span>
-                <span class="flex-1 text-sm text-center text-[#05C218]">CR: {{ 4 }}</span>
-                <span class="flex-1 text-sm text-right text-[#2E7EED]">CA: {{ 2 }}</span>
+                <span class="flex-1 text-sm text-left text-[#c78d00]">CP: {{ studentCoefficients.cp }}</span>
+                <span class="flex-1 text-sm text-center text-[#05C218]">CR: {{ studentCoefficients.cr }}</span>
+                <span class="flex-1 text-sm text-right text-[#2E7EED]">CA: {{ studentCoefficients.ca }}</span>
               </div>
             </div>
           </template>

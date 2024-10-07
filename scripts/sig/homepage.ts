@@ -42,7 +42,7 @@ type Component = {
 	period: "1" | "2" | "3";
 };
 
-type HydratedComponent = Component & {
+export type HydratedComponent = Component & {
 	credits: number;
 	category: "free" | "mandatory" | "limited";
 };
@@ -256,9 +256,7 @@ function hydrateComponents(
 	sigComponent: Component,
 	curriculumComponents: UFComponent[],
 ): HydratedComponent {
-	const match = curriculumComponents.find(
-		(c) => c.UFComponentCode === sigComponent.UFCode,
-	);
+	const match = curriculumComponents.find((c) => c.name === sigComponent.name);
 	if (!match) {
 		return {
 			category: "free",
