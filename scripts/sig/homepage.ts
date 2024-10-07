@@ -1,7 +1,13 @@
 import { fetchGrades, getUFStudent } from "@/services/UFSigaa";
 import { normalizeDiacritics } from "@/utils/removeDiacritics";
 import { useChangeCase } from "@vueuse/integrations/useChangeCase";
-import { getUFCourseCurriculums, getUFCourses, getUFCurriculumComponents, UFComponent, UFCourseCurriculum } from "@/services/UFParser";
+import {
+	getUFCourseCurriculums,
+	getUFCourses,
+	getUFCurriculumComponents,
+	type UFComponent,
+	type UFCourseCurriculum,
+} from "@/services/UFParser";
 import type { Course } from "@/utils/transformCourse";
 
 type SigStudent = {
@@ -38,8 +44,8 @@ type Component = {
 
 type HydratedComponent = Component & {
 	credits: number;
-	category : 'free' | 'mandatory' | 'limited'
-}
+	category: "free" | "mandatory" | "limited";
+};
 
 export type Student = {
 	name: string;
@@ -50,7 +56,7 @@ export type Student = {
 		course: Course;
 		campus: string;
 		shift: string;
-		components: Component[];
+		components: HydratedComponent[];
 	};
 	startedAt: string;
 	lastUpdate: number;
@@ -127,23 +133,32 @@ export async function scrapeMenu(
 	);
 
 	if (!studentGraduation) {
-		console.log('error finding student graduation', shallowStudent.graduation)
-		return null
+		console.log("error finding student graduation", shallowStudent.graduation);
+		return null;
 	}
 
-	const graduationCurriculums = await getUFCourseCurriculums(studentGraduation.UFcourseId)
-	console.log('aqui', graduationCurriculums)
-	const curriculumByRa = resolveCurriculum(shallowStudent.ra, graduationCurriculums)
+	const graduationCurriculums = await getUFCourseCurriculums(
+		studentGraduation.UFcourseId,
+	);
+	const curriculumByRa = resolveCurriculum(
+		shallowStudent.ra,
+		graduationCurriculums,
+	);
 	if (!curriculumByRa) {
-		return null
+		return null;
 	}
 
 	if (!graduationHistory) {
 		console.log("error scrapping student history", graduationHistory);
 		return null;
 	}
-	const curriculumComponents = await getUFCurriculumComponents(studentGraduation.UFcourseId, curriculumByRa?.year);
-	const beauty = graduationHistory.map(component => hydrateComponents(component, curriculumComponents.components))
+	const curriculumComponents = await getUFCurriculumComponents(
+		studentGraduation.UFcourseId,
+		curriculumByRa?.year,
+	);
+	const beauty = graduationHistory.map((component) =>
+		hydrateComponents(component, curriculumComponents.components),
+	);
 
 	const student = {
 		...shallowStudent,
@@ -228,19 +243,28 @@ function extractHeaders(table: HTMLTableElement) {
 
 function resolveCurriculum(ra: string, curriculums: UFCourseCurriculum[]) {
 	const raYear = ra.slice(2, 6);
-  const sortedCurriculums = curriculums.sort((a, b) => Number.parseInt(b.year) - Number.parseInt(a.year));
-	const appropriateCurriculum = sortedCurriculums.find(curriculum => Number.parseInt(curriculum.year) <= Number.parseInt(raYear));
-  return appropriateCurriculum;
+	const sortedCurriculums = curriculums.sort(
+		(a, b) => Number.parseInt(b.year) - Number.parseInt(a.year),
+	);
+	const appropriateCurriculum = sortedCurriculums.find(
+		(curriculum) => Number.parseInt(curriculum.year) <= Number.parseInt(raYear),
+	);
+	return appropriateCurriculum;
 }
 
-function hydrateComponents(sigComponent: Component, curriculumComponents: UFComponent[]): HydratedComponent {
-	const match = curriculumComponents.find(c => c.UFComponentCode === sigComponent.UFCode)
-	if(!match) {
+function hydrateComponents(
+	sigComponent: Component,
+	curriculumComponents: UFComponent[],
+): HydratedComponent {
+	const match = curriculumComponents.find(
+		(c) => c.UFComponentCode === sigComponent.UFCode,
+	);
+	if (!match) {
 		return {
-			category: 'free',
+			category: "free",
 			credits: 0,
 			...sigComponent,
-		}
+		};
 	}
 
 	return {
@@ -251,6 +275,6 @@ function hydrateComponents(sigComponent: Component, curriculumComponents: UFComp
 		grade: sigComponent.grade,
 		period: sigComponent.period,
 		status: sigComponent.status,
-		year: sigComponent.year
-	}
+		year: sigComponent.year,
+	};
 }
