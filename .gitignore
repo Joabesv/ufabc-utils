@@ -25,3 +25,5 @@ web-ext.config.ts
 *.sln
 *.sw?
 .env
+auto-imports.d.ts
+components.d.ts
