@@ -1,6 +1,4 @@
-import { storage } from "wxt/storage";
-
-export async function getStudentId(ra: string) {
+export function getStudentId() {
 	const scripts = document.querySelectorAll("script");
 	const searchString = "todasMatriculas";
 	let studentId = null;
@@ -13,19 +11,12 @@ export async function getStudentId(ra: string) {
 
 			if (match?.[1]) {
 				studentId = Number.parseInt(match[1], 10);
-				await storage.setItem("session:matricula-student", {
-					ra,
-					studentId,
-				});
 				break; // Interrompe o loop quando o ID é encontrado
 			}
 		}
 	}
 
-	const cachedStudent = await storage.getItem("session:matricula-student", {
-		fallback: studentId,
-	});
-	return cachedStudent;
+	return studentId;
 }
 
 function currentUser() {

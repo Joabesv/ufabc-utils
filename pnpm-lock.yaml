@@ -32,6 +32,9 @@ importers:
       vue:
         specifier: ^3.4.34
         version: 3.5.10(typescript@5.6.2)
+      vue-sonner:
+        specifier: ^1.2.1
+        version: 1.2.1
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.3
@@ -2669,6 +2672,9 @@ packages:
       '@vue/composition-api':
         optional: true
 
+  vue-sonner@1.2.1:
+    resolution: {integrity: sha512-J5+TwkayiBkieYBG8PGk5PMys8+UZxDmT/CCaX9otDzRONRr5hgTgo2Fha2krUFnUw1d576jsNGXhmAL06ixfA==}
+
   vue-tsc@2.1.6:
     resolution: {integrity: sha512-f98dyZp5FOukcYmbFpuSCJ4Z0vHSOSmxGttZJCsFeX0M4w/Rsq0s4uKXjcSRsZqsRgQa6z7SfuO+y0HVICE57Q==}
     hasBin: true
@@ -5290,6 +5296,8 @@ snapshots:
   vue-demi@0.14.10(vue@3.5.10(typescript@5.6.2)):
     dependencies:
       vue: 3.5.10(typescript@5.6.2)
+
+  vue-sonner@1.2.1: {}
 
   vue-tsc@2.1.6(typescript@5.6.2):
     dependencies:

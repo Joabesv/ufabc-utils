@@ -21,7 +21,6 @@ export default defineContentScript({
 			// fix here the way a receive the curriculum year, maybe asking for the user
 			// is the best use case
 			const student = await scrapeMenu($trs);
-			console.log(student)
 			storage.setItem("sync:student", student);
 			successToast.showToast();
 		}
@@ -33,7 +32,7 @@ export default defineContentScript({
 		// URL: https://sig.ufabc.edu.br/sigaa/portais/discente/turmas.jsf
 
 		// calculate a v0 of coefficients to make sure everything its ok
-		// Popup code (vue code)					
+		// Popup code (vue code)
 	},
 	runAt: "document_end",
 	matches: ["https://sig.ufabc.edu.br/sigaa/portais/discente/discente.jsf"],

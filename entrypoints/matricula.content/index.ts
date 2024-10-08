@@ -8,7 +8,6 @@ export default defineContentScript({
 		// inject the matricula modal here
 		// init kicks again
 		const ui = await mountMatriculaFilters(ctx);
-		console.log("joabe", ctx);
 		ui.mount();
 	},
 	runAt: "document_end",
@@ -24,10 +23,20 @@ function mountMatriculaFilters(ctx: ContentScriptContext) {
 	return createShadowRootUi(ctx, {
 		name: "matriculas-filter",
 		position: "modal",
+		mode: "closed",
+		isolateEvents: true,
+		append: "first",
+		anchor: "#meio",
 		onMount(container, _shadow, _shadowhost) {
+			const wrapper = document.createElement("div");
+			container.append(wrapper);
 			const app = createApp(Matricula);
-			app.mount(container);
-			return app;
+			app.mount(wrapper);
+			return { app, wrapper };
+		},
+		onRemove(mounted) {
+			mounted?.app.unmount();
+			mounted?.wrapper.remove();
 		},
 	});
 }
