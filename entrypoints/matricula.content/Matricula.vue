@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { toast } from 'vue-sonner'
 import { getStudentId } from '@/utils/UFMatricula'
+import { useStorage } from '@/composables/useStorage'
+import type { Student } from '@/scripts/sig/homepage';
+
 type Filter = {
   name: 'Santo André' | 'São Bernardo' | 'Noturno' | 'Matutino'
   val: boolean
@@ -8,6 +12,10 @@ type Filter = {
 }
 
 const selected = ref(false)
+const cursadas = ref(false)
+const showWarning = ref(false);
+
+
 
 const campusFilters = ref<Filter[]>([
   {
@@ -51,6 +59,7 @@ function changeSelected() {
   const studentId = getStudentId();
   const enrollments = window.matriculas[studentId] || [];
   const tableRows = document.querySelectorAll('tr')
+  console.log(studentId, tableRows)
 
   for(const $row of tableRows) {
     const componentId = $row.getAttribute('value')
@@ -61,12 +70,48 @@ function changeSelected() {
   }
 }
 
+function changeCursadas() {
+  const isCursadas = document.querySelectorAll<HTMLSpanElement>('.isCursada');
+  if (!cursadas.value) {
+    for(const $el of isCursadas) {
+      $el.style.display = ''
+    }
+    return;
+  }
+
+  const { state: storageStudent } = useStorage<Student>('sync:student')
+  if (!storageStudent) {
+    toast.warning('Não encontramos suas disciplinas cursadas, por favor acesse o sigaa')
+    return
+  }
+  console.log(storageStudent.value)
+  const passed = storageStudent.value?.graduation.components
+  .filter((c) => ['A', 'B', 'C', 'D', 'E'].includes(c.grade))
+  .map((c) => c.name);
+
+  const trData = document.querySelectorAll<HTMLTableSectionElement>('table tr td:nth-child(3)')
+  for(const $el of trData) {
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    const [component] = $el?.textContent?.split('-')!
+    const name = component.substring(0, component.lastIndexOf(' '))
+    if(passed?.includes(name)) {
+      $el?.parentElement?.classList.add('isCursada');
+      $el.parentElement.style.display = 'none';
+    }
+  }
+}
+
 function applyFilter(params: Filter) {
   if (!params.val) {
     const tableData = document.querySelectorAll<HTMLTableElement>('#tabeladisciplinas tr td:nth-child(3)')
-    for(const data of tableData) {
-      const campus = data.textContent?.toLocaleLowerCase()
+    for (const data of tableData) {
+      const subject = data.textContent?.toLocaleLowerCase()
+      if(!subject) {
+        return;
+      }
+      const [, campus] = subject.split('(')
       if(!campus?.includes(params.comparator.toLocaleLowerCase())) {
+        console.log('porra', data.parentElement?.classList, 'outs', params.class)
         data?.parentElement?.classList.add(params.class);
       }
     }
@@ -114,14 +159,51 @@ function applyFilter(params: Filter) {
     <section class="pr-5">
       <h3 class="text-sm mb-0.5 text-black/90">Filtros</h3>
       <el-switch
-        class="mr-3 ufabc-element-switch"
+        class="mr-3"
         active-text="Disciplinas escolhidas"
-        style="font-size: 13px;"
         v-model="selected"
         @change="changeSelected()"
       >
-        
       </el-switch>
+
+      <el-switch
+          class="mr-3"
+          active-text="Disciplinas cursadas"
+          style="font-size: 13px;"
+          v-model="cursadas"
+          @change="changeCursadas()"
+        >
+      </el-switch>
+
+
+      <el-popover 
+        v-if="showWarning"
+        placement="bottom"
+        title="Atenção"
+        width="450"
+        trigger="hover"
+      >
+        <div>
+          Faz mais de uma semana que você não sincroniza seus dados.<br />
+          Isso pode acabar afetando a ordem dos chutes. <br /><br />
+          <a
+            href="https://aluno.ufabc.edu.br/fichas_individuais"
+            target="_blank"
+            class="text-[#0000ee]"
+          >
+            Atualizar dados agora
+          </a>
+        </div>
+        <el-button
+          v-if="showWarning"
+          slot="reference"
+          type="danger"
+          icon="el-icon-warning"
+          class="ml-3"
+          circle
+        >
+        </el-button>
+      </el-popover>
     </section>
   </div>
 </template>
