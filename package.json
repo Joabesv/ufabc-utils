@@ -20,6 +20,7 @@
     "change-case": "^5.4.4",
     "element-plus": "^2.8.4",
     "lucide-vue-next": "^0.447.0",
+    "mustache": "^4.2.0",
     "ofetch": "^1.4.0",
     "toastify-js": "^1.12.0",
     "vue": "^3.4.34",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
+    "@types/mustache": "^4.2.5",
     "@types/toastify-js": "^1.12.3",
     "@wxt-dev/module-vue": "^1.0.0",
     "autoprefixer": "^10.4.20",

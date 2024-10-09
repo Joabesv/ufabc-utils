@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { toast } from 'vue-sonner'
-import { getStudentId } from '@/utils/UFMatricula'
+import Teacher from '@/components/Teacher.vue'
+import Cortes from '@/components/Cortes.vue'
+import { toast, Toaster } from 'vue-sonner'
+import { getStudentId,  currentUser } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
+import { getComponents, type Component } from '@/services/next'
+import Mustache from 'mustache'
 import type { Student } from '@/scripts/sig/homepage';
 
 type Filter = {
@@ -14,6 +18,8 @@ type Filter = {
 const selected = ref(false)
 const cursadas = ref(false)
 const showWarning = ref(false);
+const teachers = ref(false);
+
 
 const campusFilters = ref<Filter[]>([
   {
@@ -55,6 +61,9 @@ function changeSelected() {
   }
 
   const studentId = getStudentId();
+  if (!studentId) {
+    return
+  }
   const enrollments = window.matriculas[studentId] || [];
   const tableRows = document.querySelectorAll('tr')
   console.log(tableRows)
@@ -78,7 +87,7 @@ function changeCursadas() {
   }
 
   const { state: storageStudent } = useStorage<Student>('sync:student')
-  if (!storageStudent) {
+  if (!storageStudent.value) {
     toast.warning('Não encontramos suas disciplinas cursadas, por favor acesse o sigaa')
     return
   }
@@ -99,6 +108,7 @@ function changeCursadas() {
   }
 }
 
+
 function applyFilter(params: Filter) {
   if (!params.val) {
     const tableData = document.querySelectorAll<HTMLTableElement>('#tabeladisciplinas tr td:nth-child(3)')
@@ -108,7 +118,6 @@ function applyFilter(params: Filter) {
         return;
       }
       if(!subject?.includes(params.comparator.toLocaleLowerCase())) {
-        console.log(subject, params.class)
         data?.parentElement?.classList.add(params.class);
       }
     }
@@ -122,6 +131,85 @@ function applyFilter(params: Filter) {
     tr.classList.remove(params.class)
   }
 }
+
+async function buildComponents() {
+ if (!teachers.value) {
+    for (const $element of document.querySelectorAll<HTMLTableCaptionElement>('.isTeacherReview')) {
+      $element.style.display = 'none'
+    }
+    return
+ }
+  // se ja tiver calculado nao refaz o trabalho
+  const teacherReviews = document.querySelectorAll<HTMLTableCaptionElement>('.isTeacherReview');
+  if (teacherReviews.length > 0) {
+    for (const $element of document.querySelectorAll<HTMLTableCaptionElement>('.isTeacherReview')) {
+      $element.style.display = ''
+    }
+    return;
+  }
+  const { state: components } = await useStorage<Component[] | null>('local:components', null)
+  if(!components.value) {
+    components.value = await getComponents()
+  }
+
+  const componentsMap = new Map(
+    components.value?.map((component) => [
+      component.disciplina_id.toString(),
+      component,
+    ]),
+  );
+
+  const teacherPop = browser.runtime.getURL('/teacherPopover.html')
+  const cortesHtml = browser.runtime.getURL('/corte.html')
+  const mainTable = document.querySelectorAll('table tr');
+  console.log(mainTable)
+  for (const row of mainTable) {
+    const el = row.querySelector('td:nth-child(3)');
+    const subjectEl = row.querySelector<HTMLSpanElement>('td:nth-child(3) > span');
+    const corteEl = row.querySelector('td:nth-child(5)');
+    const componentId = row.getAttribute('value');
+    const component = componentsMap.get(componentId ?? '');
+    if (!component) {
+      continue;
+    }
+
+    if (component.subject) {
+      subjectEl?.setAttribute('subjectId', component.subjectId);
+    }
+    
+    const rendered = Mustache.render(teacherPop, component)
+    console.log(rendered)
+    el?.insertAdjacentHTML(
+      'beforeend',
+      rendered,
+    );
+    corteEl?.insertAdjacentHTML('beforeend', cortesHtml);
+  } 
+}
+
+onMounted(async () => {
+  try {
+    const students = await useStorage<Student[]>('sync:students')
+    const currentStudent = currentUser()
+    let student: Student | null = null
+    if(students && Array.isArray(students)) {
+      student = students.find(student => student.name === currentStudent)
+    }
+
+    if (student?.lastUpdate) {
+      const diff = Date.now() - student.lastUpdate;
+      const MAX_UPDATE_DIFF = 1000 * 60 * 60 * 24 * 7; // 7 days
+      if (diff > MAX_UPDATE_DIFF) {
+        showWarning.value = true;
+      }
+    }
+
+    teachers.value = true;
+    await buildComponents();
+  } catch(error) {
+    console.error('Error during onMounted execution:', error);
+  }
+})
 </script>
 
 <template>
@@ -156,6 +244,7 @@ function applyFilter(params: Filter) {
 
     <section class="pr-5">
       <h3 class="text-sm mb-0.5 text-black/90">Filtros</h3>
+      <Toaster position="bottom-right" theme="light" rich-colors />
       <el-switch
         class="mr-3"
         active-text="Disciplinas escolhidas"

@@ -23,6 +23,9 @@ importers:
       lucide-vue-next:
         specifier: ^0.447.0
         version: 0.447.0(vue@3.5.10(typescript@5.6.2))
+      mustache:
+        specifier: ^4.2.0
+        version: 4.2.0
       ofetch:
         specifier: ^1.4.0
         version: 1.4.0
@@ -39,6 +42,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.3
         version: 1.9.3
+      '@types/mustache':
+        specifier: ^4.2.5
+        version: 4.2.5
       '@types/toastify-js':
         specifier: ^1.12.3
         version: 1.12.3
@@ -667,6 +673,9 @@ packages:
 
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
+
+  '@types/mustache@4.2.5':
+    resolution: {integrity: sha512-PLwiVvTBg59tGFL/8VpcGvqOu3L4OuveNvPi0EYbWchRdEVP++yRUXJPFl+CApKEq13017/4Nf7aQ5lTtHUNsA==}
 
   '@types/node@22.7.4':
     resolution: {integrity: sha512-y+NPi1rFzDs1NdQHHToqeiX2TIS79SWEAw9GYhkkx8bD0ChpfqC+n2j5OXOCpzfojBEBt6DnEnnG9MY0zk1XLg==}
@@ -1946,6 +1955,10 @@ packages:
     resolution: {integrity: sha512-I7tSVxHGPlmPN/enE3mS1aOSo6bWBfls+3HmuEeCUBCE7gWnm3cBXCBkpurzFjVRwC6Kld8lLaZ1Iv5vOcjvcQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
+    hasBin: true
+
   mv@2.1.1:
     resolution: {integrity: sha512-at/ZndSy3xEGJ8i0ygALh8ru9qy7gWW1cmkaqBN29JmMlIvM//MEO9y1sk/avxuwnPcfhkejkLsuPxH81BrkSg==}
     engines: {node: '>=0.8.0'}
@@ -3211,6 +3224,8 @@ snapshots:
   '@types/lodash@4.17.10': {}
 
   '@types/minimatch@3.0.5': {}
+
+  '@types/mustache@4.2.5': {}
 
   '@types/node@22.7.4':
     dependencies:
@@ -4526,6 +4541,8 @@ snapshots:
       array-differ: 4.0.0
       array-union: 3.0.1
       minimatch: 3.1.2
+
+  mustache@4.2.0: {}
 
   mv@2.1.1:
     dependencies:
