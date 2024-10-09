@@ -19,7 +19,7 @@ export function getStudentId() {
 	return studentId;
 }
 
-function currentUser() {
+export function currentUser() {
 	const $span = document.querySelector<HTMLSpanElement>("#usuario_top");
 	const rawContent = $span?.textContent || $span?.innerHTML;
 	const content = rawContent?.replace(/\s*/, "");
