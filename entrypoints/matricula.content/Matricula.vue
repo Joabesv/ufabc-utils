@@ -7,15 +7,13 @@ import type { Student } from '@/scripts/sig/homepage';
 type Filter = {
   name: 'Santo André' | 'São Bernardo' | 'Noturno' | 'Matutino'
   val: boolean
-  comparator: 'bernardo' | 'andr' | 'matutino' | 'noturno'
+  comparator: 'bernardo' | 'andr' | 'diurno' | 'noturno'
   class: 'notAndre' | 'notBernardo' | 'notNoturno' | 'notMatutino'
 }
 
 const selected = ref(false)
 const cursadas = ref(false)
 const showWarning = ref(false);
-
-
 
 const campusFilters = ref<Filter[]>([
   {
@@ -37,7 +35,7 @@ const shiftFilters = ref<Filter[]>([
     name: 'Noturno',
     class: 'notNoturno',
     val: true,
-    comparator: 'matutino',
+    comparator: 'diurno',
   },
   {
     name: 'Matutino',
@@ -59,7 +57,7 @@ function changeSelected() {
   const studentId = getStudentId();
   const enrollments = window.matriculas[studentId] || [];
   const tableRows = document.querySelectorAll('tr')
-  console.log(studentId, tableRows)
+  console.log(tableRows)
 
   for(const $row of tableRows) {
     const componentId = $row.getAttribute('value')
@@ -109,9 +107,8 @@ function applyFilter(params: Filter) {
       if(!subject) {
         return;
       }
-      const [, campus] = subject.split('(')
-      if(!campus?.includes(params.comparator.toLocaleLowerCase())) {
-        console.log('porra', data.parentElement?.classList, 'outs', params.class)
+      if(!subject?.includes(params.comparator.toLocaleLowerCase())) {
+        console.log(subject, params.class)
         data?.parentElement?.classList.add(params.class);
       }
     }
@@ -121,6 +118,7 @@ function applyFilter(params: Filter) {
 
   const allTr = document.querySelectorAll('#tabeladisciplinas tr')
   for (const tr of allTr) {
+    console.log(params.class)
     tr.classList.remove(params.class)
   }
 }

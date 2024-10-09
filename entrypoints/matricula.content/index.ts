@@ -19,7 +19,7 @@ export default defineContentScript({
 	],
 });
 
-function mountMatriculaFilters(ctx: ContentScriptContext) {
+async function mountMatriculaFilters(ctx: ContentScriptContext) {
 	return createShadowRootUi(ctx, {
 		name: "matriculas-filter",
 		position: "modal",
@@ -27,7 +27,7 @@ function mountMatriculaFilters(ctx: ContentScriptContext) {
 		isolateEvents: true,
 		append: "first",
 		anchor: "#meio",
-		onMount(container, _shadow, _shadowhost) {
+		onMount(container, shadow, _shadowhost) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
 			const app = createApp(Matricula);
