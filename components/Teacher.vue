@@ -1,5 +1,4 @@
 <template>
-  <div>
     <div v-if="teoria" class="mt-1.5 text-xs font-bold uppercase">
       Teoria: 
       <a 
@@ -20,7 +19,6 @@
         {{ pratica }}
       </a>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -31,5 +29,7 @@ type TeacherProps = {
     praticaId?: string;
 }
 
-defineProps<TeacherProps>();
+console.log(props)
+
+const props = defineProps<TeacherProps>();
 </script>

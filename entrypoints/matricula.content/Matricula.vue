@@ -5,7 +5,6 @@ import { toast, Toaster } from 'vue-sonner'
 import { getStudentId,  currentUser } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
 import { getComponents, type Component } from '@/services/next'
-import Mustache from 'mustache'
 import type { Student } from '@/scripts/sig/homepage';
 
 type Filter = {
@@ -152,6 +151,7 @@ async function buildComponents() {
     components.value = await getComponents()
   }
 
+
   const componentsMap = new Map(
     components.value?.map((component) => [
       component.disciplina_id.toString(),
@@ -159,16 +159,20 @@ async function buildComponents() {
     ]),
   );
 
-  const teacherPop = browser.runtime.getURL('/teacherPopover.html')
-  const cortesHtml = browser.runtime.getURL('/corte.html')
+
   const mainTable = document.querySelectorAll('table tr');
-  console.log(mainTable)
   for (const row of mainTable) {
-    const el = row.querySelector('td:nth-child(3)');
+    const el = row.querySelector<HTMLTableColElement>('td:nth-child(3)');
     const subjectEl = row.querySelector<HTMLSpanElement>('td:nth-child(3) > span');
     const corteEl = row.querySelector('td:nth-child(5)');
     const componentId = row.getAttribute('value');
-    const component = componentsMap.get(componentId ?? '');
+
+    if(!componentId) {
+      continue;
+    }
+
+    const component = componentsMap.get(componentId);
+
     if (!component) {
       continue;
     }
@@ -176,14 +180,13 @@ async function buildComponents() {
     if (component.subject) {
       subjectEl?.setAttribute('subjectId', component.subjectId);
     }
-    
-    const rendered = Mustache.render(teacherPop, component)
-    console.log(rendered)
-    el?.insertAdjacentHTML(
-      'beforeend',
-      rendered,
-    );
-    corteEl?.insertAdjacentHTML('beforeend', cortesHtml);
+
+    const teacherInfoComponent = createApp(Teacher, component).mount(document.createElement('div'))
+    console.log(teacherInfoComponent.$el)
+    el?.insertAdjacentHTML('beforeend' ,teacherInfoComponent.$el)
+
+    const cutoffInfoComponent = createApp(Cortes).mount(document.createElement('div'))
+    corteEl?.insertAdjacentHTML('beforeend',cutoffInfoComponent.$el)
   } 
 }
 
