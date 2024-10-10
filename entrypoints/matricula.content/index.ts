@@ -1,7 +1,7 @@
 import Matricula from "./Matricula.vue";
 import type { ContentScriptContext } from "wxt/client";
 import "./style.css";
-import { getAllMatriculas } from "@/services/UFMatricula";
+import { getUFEnrolled } from "@/services/UFParser";
 
 export default defineContentScript({
 	async main(ctx) {
@@ -14,6 +14,7 @@ export default defineContentScript({
 	runAt: "document_end",
 	cssInjectionMode: "ui",
 	matches: [
+		"https://ufabc-matricula-snapshot.vercel.app/",
 		"https://matricula.ufabc.edu.br/matricula",
 		"https://matricula.ufabc.edu.br/matricula/resumo",
 		"https://api.ufabcnext.com/snapshot",
@@ -26,11 +27,11 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 		position: "modal",
 		anchor: "#meio",
 		append: "first",
-		zIndex: 9999,
+		zIndex: 9,
 		async onMount(container, shadow, _shadowhost) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
-			const matriculas = await getAllMatriculas();
+			const matriculas = await getUFEnrolled();
 			window.matriculas = matriculas;
 			const app = createApp(Matricula);
 			app.provide("matriculas", window.matriculas);

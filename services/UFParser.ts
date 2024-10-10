@@ -94,3 +94,22 @@ export async function getUFCurriculumComponents(
 	);
 	return curriculumComponents;
 }
+
+export async function getUFEnrolled() {
+	const enrolled =
+		await ufParserService<Record<string, Array<number>>>("/enrolled");
+
+	const result: Record<number, string[]> = {};
+	for (const componentId in enrolled) {
+		const studentIds = enrolled[Number(componentId)];
+
+		for (const studentId of studentIds) {
+			if (!result[studentId]) {
+				result[studentId] = [];
+			}
+			result[studentId].push(componentId);
+		}
+	}
+
+	return result;
+}

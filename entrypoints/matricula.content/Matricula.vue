@@ -63,9 +63,10 @@ function changeSelected() {
 
   const studentId = getStudentId();
   if (!studentId) {
+    console.log('show some message to the user')
     return
-  }
-  const enrollments = matriculas?.[studentId]
+  } 
+  const enrollments = matriculas?.[studentId] || []
   const tableRows = document.querySelectorAll('tr')
 
   for(const $row of tableRows) {
@@ -118,10 +119,10 @@ function applyFilter(params: Filter) {
         return;
       }
       if(!subject?.includes(params.comparator.toLocaleLowerCase())) {
-        console.log('porra', params)
         data?.parentElement?.classList.add(params.class);
       }
     }
+
     return
   }
 
