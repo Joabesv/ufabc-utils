@@ -24,9 +24,10 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 		name: "matriculas-filter",
 		position: "modal",
 		mode: "closed",
-		isolateEvents: true,
-		append: "first",
+		isolateEvents: false,
 		anchor: "#meio",
+		append: "first",
+		zIndex: 8,
 		onMount(container, shadow, _shadowhost) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
