@@ -1,5 +1,5 @@
 <template>
-  <span class="text-xs font-bold uppercase text-red-500 cursor-pointer">
+  <span style="color: red; cursor: pointer; font-size: 13px; font-weight: bold; text-transform: uppercase;">
     Cortes
   </span>
 </template>

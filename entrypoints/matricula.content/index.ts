@@ -1,6 +1,7 @@
 import Matricula from "./Matricula.vue";
 import type { ContentScriptContext } from "wxt/client";
 import "./style.css";
+import { getAllMatriculas } from "@/services/UFMatricula";
 
 export default defineContentScript({
 	async main(ctx) {
@@ -23,15 +24,17 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 	return createShadowRootUi(ctx, {
 		name: "matriculas-filter",
 		position: "modal",
-		mode: "closed",
-		isolateEvents: false,
 		anchor: "#meio",
 		append: "first",
-		zIndex: 8,
-		onMount(container, shadow, _shadowhost) {
+		zIndex: 9999,
+		async onMount(container, shadow, _shadowhost) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
+			const matriculas = await getAllMatriculas();
+			window.matriculas = matriculas;
 			const app = createApp(Matricula);
+			app.provide("matriculas", window.matriculas);
+
 			app.mount(wrapper);
 			return { app, wrapper };
 		},

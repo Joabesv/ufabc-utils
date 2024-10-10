@@ -22,14 +22,7 @@
 </template>
 
 <script setup lang="ts">
-type TeacherProps = {
-    teoria?: string;
-    teoriaId?: string;
-    pratica?: string;
-    praticaId?: string;
-}
+import type { Component } from '@/services/next';
 
-console.log(props)
-
-const props = defineProps<TeacherProps>();
+defineProps<Component>();
 </script>

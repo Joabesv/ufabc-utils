@@ -6,6 +6,7 @@ import { getStudentId,  currentUser } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
 import { getComponents, type Component } from '@/services/next'
 import type { Student } from '@/scripts/sig/homepage';
+import { render } from 'vue'
 
 type Filter = {
   name: 'Santo André' | 'São Bernardo' | 'Noturno' | 'Matutino'
@@ -14,11 +15,12 @@ type Filter = {
   class: 'notAndre' | 'notBernardo' | 'notNoturno' | 'notMatutino'
 }
 
+const matriculas = inject<typeof window.matriculas>('matriculas')
+
 const selected = ref(false)
 const cursadas = ref(false)
 const showWarning = ref(false);
 const teachers = ref(false);
-
 
 const campusFilters = ref<Filter[]>([
   {
@@ -63,13 +65,12 @@ function changeSelected() {
   if (!studentId) {
     return
   }
-  const enrollments = window.matriculas[studentId] || [];
+  const enrollments = matriculas?.[studentId]
   const tableRows = document.querySelectorAll('tr')
-  console.log(tableRows)
 
   for(const $row of tableRows) {
     const componentId = $row.getAttribute('value')
-    if (componentId && !enrollments.includes(componentId.toString())) {
+    if (componentId && !enrollments?.includes(componentId.toString())) {
       $row.classList.add('notSelecionada')
       $row.style.display = 'none'
     }
@@ -117,6 +118,7 @@ function applyFilter(params: Filter) {
         return;
       }
       if(!subject?.includes(params.comparator.toLocaleLowerCase())) {
+        console.log('porra', params)
         data?.parentElement?.classList.add(params.class);
       }
     }
@@ -126,7 +128,6 @@ function applyFilter(params: Filter) {
 
   const allTr = document.querySelectorAll('#tabeladisciplinas tr')
   for (const tr of allTr) {
-    console.log(params.class)
     tr.classList.remove(params.class)
   }
 }
@@ -140,6 +141,7 @@ async function buildComponents() {
  }
   // se ja tiver calculado nao refaz o trabalho
   const teacherReviews = document.querySelectorAll<HTMLTableCaptionElement>('.isTeacherReview');
+
   if (teacherReviews.length > 0) {
     for (const $element of document.querySelectorAll<HTMLTableCaptionElement>('.isTeacherReview')) {
       $element.style.display = ''
@@ -181,12 +183,15 @@ async function buildComponents() {
       subjectEl?.setAttribute('subjectId', component.subjectId);
     }
 
-    const teacherInfoComponent = createApp(Teacher, component).mount(document.createElement('div'))
-    console.log(teacherInfoComponent.$el)
-    el?.insertAdjacentHTML('beforeend' ,teacherInfoComponent.$el)
+    const teacherContainer = document.createElement('div')
+    el?.appendChild(teacherContainer)
 
-    const cutoffInfoComponent = createApp(Cortes).mount(document.createElement('div'))
-    corteEl?.insertAdjacentHTML('beforeend',cutoffInfoComponent.$el)
+    render(h(Teacher, component), teacherContainer)
+
+    const cortesContainer = document.createElement('div');
+    corteEl?.appendChild(cortesContainer);
+    
+    render(h(Cortes), cortesContainer)
   } 
 }
 
