@@ -119,7 +119,7 @@ function applyFilter(params: Filter) {
         return;
       }
       if(!subject?.includes(params.comparator.toLocaleLowerCase())) {
-        data?.parentElement?.classList.add(params.class);
+        data.parentElement.style.display = 'none';
       }
     }
 
@@ -127,9 +127,9 @@ function applyFilter(params: Filter) {
   }
 
 
-  const allTr = document.querySelectorAll('#tabeladisciplinas tr')
+  const allTr = document.querySelectorAll<HTMLTableRowElement>('#tabeladisciplinas tr')
   for (const tr of allTr) {
-    tr.classList.remove(params.class)
+    tr.style.display = ''
   }
 }
 

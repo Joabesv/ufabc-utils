@@ -10,6 +10,13 @@ export default defineContentScript({
 		// init kicks again
 		const ui = await mountMatriculaFilters(ctx);
 		ui.mount();
+
+		const mountedUi = document.querySelector("#meio")
+			?.firstChild as unknown as HTMLDivElement;
+
+		mountedUi.style.position = "sticky";
+		mountedUi.style.top = "0px";
+		mountedUi.style.zIndex = "9";
 	},
 	runAt: "document_end",
 	cssInjectionMode: "ui",
@@ -24,10 +31,9 @@ export default defineContentScript({
 async function mountMatriculaFilters(ctx: ContentScriptContext) {
 	return createShadowRootUi(ctx, {
 		name: "matriculas-filter",
-		position: "modal",
+		position: "inline",
 		anchor: "#meio",
 		append: "first",
-		zIndex: 9,
 		async onMount(container, shadow, _shadowhost) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
