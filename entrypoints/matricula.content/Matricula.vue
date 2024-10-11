@@ -52,6 +52,8 @@ const shiftFilters = ref<Filter[]>([
   },
 ]);
 
+const student = ref<Student | null>(null)
+
 function changeSelected() {
   const notSelected =  document.querySelectorAll<HTMLTableCaptionElement>('.notSelecionada')
   if (!selected.value) {
@@ -87,13 +89,12 @@ function changeCursadas() {
     return;
   }
 
-  const { state: storageStudent } = useStorage<Student>('sync:student')
-  if (!storageStudent.value) {
+  if (!student.value) {
     toast.warning('Não encontramos suas disciplinas cursadas, por favor acesse o sigaa')
     return
   }
-  console.log(storageStudent.value)
-  const passed = storageStudent.value?.graduation.components
+
+  const passed = student.value?.graduation.components
   .filter((c) => ['A', 'B', 'C', 'D', 'E'].includes(c.grade))
   .map((c) => c.name);
 
@@ -198,21 +199,8 @@ async function buildComponents() {
 
 onMounted(async () => {
   try {
-    const students = await useStorage<Student[]>('sync:students')
-    const currentStudent = currentUser()
-    let student: Student | null = null
-    if(students && Array.isArray(students)) {
-      student = students.find(student => student.name === currentStudent)
-    }
-
-    if (student?.lastUpdate) {
-      const diff = Date.now() - student.lastUpdate;
-      const MAX_UPDATE_DIFF = 1000 * 60 * 60 * 24 * 7; // 7 days
-      if (diff > MAX_UPDATE_DIFF) {
-        showWarning.value = true;
-      }
-    }
-
+    const { state: storageStudent } = await useStorage<Student>('sync:student')
+    student.value = storageStudent.value
     teachers.value = true;
     await buildComponents();
   } catch(error) {
