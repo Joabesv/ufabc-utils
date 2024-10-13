@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import Teacher from '@/components/Teacher.vue'
 import Cortes from '@/components/Cortes.vue'
+import Modal from './Modal.vue'
 import { toast, Toaster } from 'vue-sonner'
 import { getStudentId,  currentUser } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
 import { getComponents, type Component } from '@/services/next'
-import type { Student } from '@/scripts/sig/homepage';
 import { render } from 'vue'
+import type { Student } from '@/scripts/sig/homepage';
+
 
 type Filter = {
   name: 'Santo André' | 'São Bernardo' | 'Noturno' | 'Matutino'
@@ -16,11 +18,17 @@ type Filter = {
 }
 
 const matriculas = inject<typeof window.matriculas>('matriculas')
-
 const selected = ref(false)
 const cursadas = ref(false)
+ 
 const showWarning = ref(false);
 const teachers = ref(false);
+const modalState = ref<{ isOpen: boolean; corteId: string | null }>({
+  isOpen: false,
+  corteId: null
+})
+
+provide('modalState', modalState)
 
 const campusFilters = ref<Filter[]>([
   {
@@ -36,6 +44,7 @@ const campusFilters = ref<Filter[]>([
     comparator: 'bernardo',
   },
 ]);
+
 
 const shiftFilters = ref<Filter[]>([
   {
@@ -110,7 +119,6 @@ function changeCursadas() {
   }
 }
 
-
 function applyFilter(params: Filter) {
   if (!params.val) {
     const tableData = document.querySelectorAll<HTMLTableElement>('#tabeladisciplinas tr td:nth-child(3)')
@@ -131,6 +139,30 @@ function applyFilter(params: Filter) {
   const allTr = document.querySelectorAll<HTMLTableRowElement>('#tabeladisciplinas tr')
   for (const tr of allTr) {
     tr.style.display = ''
+  }
+}
+
+
+function openModal(corteId: string) {
+  modalState.value.isOpen = true;
+  modalState.value.corteId = corteId;
+}
+
+function closeModal() {
+  modalState.value.isOpen = false;
+  modalState.value.corteId = null;
+}
+
+function handleClick(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  if (target.closest("#cortes")) {
+    const corteElement = target.closest("#cortes");
+    if (!corteElement) return;
+    const corteId = corteElement.parentElement?.parentElement?.getAttribute("value");
+    if (corteId) {
+      console.log('here')
+      openModal(corteId);
+    }
   }
 }
 
@@ -188,7 +220,12 @@ async function buildComponents() {
     const teacherContainer = document.createElement('div')
     el?.appendChild(teacherContainer)
 
-    render(h(Teacher, component), teacherContainer)
+    render(h(Teacher, {
+      teoria: component.teoria,
+      teoriaId: component.teoriaId,
+      pratica: component.pratica,
+      praticaId: component.praticaId,
+    }), teacherContainer)
 
     const cortesContainer = document.createElement('div');
     corteEl?.appendChild(cortesContainer);
@@ -198,6 +235,7 @@ async function buildComponents() {
 }
 
 onMounted(async () => {
+  document.body.addEventListener('click', handleClick)
   try {
     const { state: storageStudent } = await useStorage<Student>('sync:student')
     student.value = storageStudent.value
@@ -206,6 +244,10 @@ onMounted(async () => {
   } catch(error) {
     console.error('Error during onMounted execution:', error);
   }
+})
+
+onUnmounted(() => {
+  document.body.removeEventListener('click', handleClick)
 })
 </script>
 
@@ -290,4 +332,9 @@ onMounted(async () => {
       </el-popover>
     </section>
   </div>
+  <Modal 
+    :is-open="modalState.isOpen"
+    :corte-id="modalState.corteId"
+    @close="closeModal"
+  />
 </template>
