@@ -1,49 +1,66 @@
 <template>
   <el-dialog :title="component?.name ? `Disciplina: ${component.name}` : 'Cortes'" :modelValue="isOpen"
-    @update:modelValue="closeModal" light width="720px">
-    <div v-loading="loading" element-loading="Carregando">
-      <div class="border mb-3 p-2">
-        <div class="flex flex-row items-center">
+    @update:modelValue="closeModal" light width="720px" class="next-dialog">
+    <div class="border mb-3 pb-2">
+      <div class="flex flex-row items-center justify-between ml-4 mt-4">
+        <div class="flex gap-1">
           Critérios
-          <el-popover placement="top-start" width="340" trigger="hover" :content="criteriaContent">
+          <el-popover placement="top-start" width="340" trigger="hover" :content="criteriaContent" class="bg-white">
             <template #reference>
-              <v-icon small class="cursor-pointer">info_outline</v-icon>
+              <Info :size="16" class="ml-1 cursor-pointer" />
             </template>
           </el-popover>
         </div>
-        <el-button size="small" type="primary" @click="restore" /> Restaurar ordem
+
+        <el-button round text type="primary" @click="restore">
+          Restaurar ordem
+        </el-button>
       </div>
 
-      <!-- VueDraggable -->
-      <h3 class="text-xs mt-2">
-        * Arraste para alterar a ordem dos critérios
-      </h3>
-
-      <div class="border mb-2 p-2">
-        <p class="mb-2">Legenda</p>
-        <div class="flex flex-row" style="justify-content: space-between;">
-          <LegendItem class="bg-[#B7D3FF]" text="Você" />
-          <LegendItem class="bg-[#f95469]" text="Certeza de chute" />
-          <LegendItem class="bg-[#f3a939]" text="Provavelmente será chutado" />
-          <LegendItem class="bg-[#3fcf8c]" text="Provavelmente não será chutado" />
-        </div>
-      </div>
-
-      <el-table :data="transformed" max-height="250" style="width: 100%" empty-text="Não Há Dados"
-        :row-class="tableRowClassName">
-        <el-table-column type="index" width="50" />
-        <el-table-column v-for="header in headers" :key="header.value" :prop="header.value" :label="header.text" />
-      </el-table>
-
-      <div class="flex bg-[#f4f4f5] h-[78px] w-full mt-6 rounded-xl flex-wrap items-center justify-center pt-2 pb-2">
-        <el-alert class="alert-update" :closable="false"
-          title="Mantenha sempre seus dados atualizados para a previsão dos chutes ser mais precisa." type="info"
-          show-icon>
-          <template #default>
-            <a href='https://aluno.ufabc.edu.br/' target='_blank'>Clique aqui para atualizar</a>
+      <div class="p-4">
+        <VueDraggableNext v-model="headers" @update="resort" item-key="value">
+          <template #item="{ element }">
+            <div class="ufabc-cursor-grabbing" style="display: inline-block !important;">
+              <el-tag closable @close="removedFilter(element.value)" class="mr-1 mb-1">
+                {{ element.text }}
+              </el-tag>
+            </div>
           </template>
-        </el-alert>
+        </VueDraggableNext>
+        <h3 class="text-sm mt-2">
+          * Arraste para alterar a ordem dos critérios
+        </h3>
       </div>
+    </div>
+
+
+
+    <div class="border mb-2 p-2">
+      <p class="mb-2">Legenda</p>
+      <div class="flex flex-row" style="justify-content: space-between;">
+        <LegendItem class="bg-[#B7D3FF]" text="Você" />
+        <LegendItem class="bg-[#f95469]" text="Certeza de chute" />
+        <LegendItem class="bg-[#f3a939]" text="Provavelmente será chutado" />
+        <LegendItem class="bg-[#3fcf8c]" text="Provavelmente não será chutado" />
+      </div>
+    </div>
+
+    <el-table v-loading="loading" element-loading-text="Carregando" :data="transformed" max-height="250"
+      style="width: 100%" empty-text="Não Há Dados" :row-class-name="tableRowClassName">
+      <el-table-column type="index" width="50" />
+      <el-table-column v-for="header in headers" :key="header.value" :prop="header.value" :label="header.text" />
+    </el-table>
+
+    <div class="flex bg-[#f4f4f5] h-[78px] w-full mt-6 rounded-xl flex-wrap items-center justify-center pt-2 pb-2">
+      <el-alert class="alert-update" :closable="false"
+        title="Mantenha sempre seus dados atualizados para a previsão dos chutes ser mais precisa." type="info"
+        show-icon>
+        <template #default>
+          <a class="underline" href='https://sig.ufabc.edu.br/sigaa/portais/discente/discente.jsf'
+            target='_blank'>Clique aqui para
+            atualizar</a>
+        </template>
+      </el-alert>
     </div>
     <template #footer>
       <div class="flex">
@@ -62,7 +79,10 @@ import { getComponentKicks } from '@/services/next';
 import type { UFSeasonComponents } from '@/services/UFParser'
 import { findIdeais, findSeasonKey } from '@/utils/tenant'
 import { ElNotification } from 'element-plus'
+import VueDraggableNext from 'vuedraggable'
 import { orderBy } from 'lodash-es'
+import { Info } from 'lucide-vue-next';
+import LegendItem from '@/components/LegendItem.vue'
 
 const matriculas = inject<typeof window.matriculas>('matriculas')
 const parserComponents = inject<UFSeasonComponents[]>('parserComponents')
@@ -97,7 +117,6 @@ async function fetch() {
   try {
     const res = await getComponentKicks(Number(corteId), studentId)
     kicks.value = res
-    console.log(res)
     resort()
   } catch (error: any) {
     if (error.name === 'forbidden') {
@@ -114,7 +133,7 @@ function closeModal() {
   emit('close');
 }
 
-const component = computed(() => parserComponents?.find(c => c.UFComponentId === Number(props.corteId)))
+const component = computed(() => parserComponents?.find(c => c.UFComponentId === Number(props.corteId)) ?? {} as UFSeasonComponents)
 
 const transformed = computed(() => {
   return kicks.value.map(d => ({
@@ -146,7 +165,7 @@ const defaultHeaders = computed(() => {
 })
 
 const getRequests = computed(() => {
-  return Object.keys(matriculas).reduce((a, c) => c.includes(component.value?.UFComponentId.toString()) ? a + 1 : a, 0)
+  return Object.keys(matriculas ?? {}).reduce((a, c) => c.includes(component.value?.UFComponentId.toString()) ? a + 1 : a, 0)
 })
 
 const computeKicksForecast = computed(() => {
@@ -175,9 +194,8 @@ const restore = () => {
   resort()
 }
 
-const tableRowClassName = ({ row, rowIndex }: any) => {
-  console.log(row, rowIndex)
-  if (row.aluno_id === 557736) {
+const tableRowClassName = ({ row, rowIndex }: { row: unknown; rowIndex: number }) => {
+  if (row.studentId === 557736) {
     return 'aluno-row'
   } if (rowIndex <= computeKicksForecast.value) {
     return 'not-kicked-row'
@@ -198,3 +216,25 @@ onMounted(async () => {
   await fetch()
 });
 </script>
+
+<style>
+next-dialog .el-dialog__body {
+  padding-top: 1rem;
+}
+
+.el-table .aluno-row {
+  background-color: #B7D3FF !important;
+}
+
+.el-table .kicked-row {
+  color: #f95469 !important;
+}
+
+.el-table .probably-kicked-row {
+  color: #f3a939 !important;
+}
+
+.el-table .not-kicked-row {
+  color: #3fcf8c !important;
+}
+</style>

@@ -17,7 +17,6 @@ export default defineContentScript({
 		mountedUi.style.position = "sticky";
 		mountedUi.style.top = "0px";
 		mountedUi.style.zIndex = "9";
-
 	},
 	runAt: "document_end",
 	cssInjectionMode: "ui",
@@ -25,7 +24,7 @@ export default defineContentScript({
 		"https://ufabc-matricula-snapshot.vercel.app/",
 		"https://matricula.ufabc.edu.br/matricula",
 		"https://matricula.ufabc.edu.br/matricula/resumo",
-		"https://api.ufabcnext.com/snapshot",
+		// "https://api.ufabcnext.com/snapshot",
 	],
 });
 
@@ -43,11 +42,12 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 			window.matriculas = matriculas;
 			const app = createApp(Matricula);
 			app.provide("matriculas", window.matriculas);
-			app.provide('parserComponents', ufParserComponents)
+			app.provide("parserComponents", ufParserComponents);
 
 			app.mount(wrapper);
 			return { app, wrapper };
 		},
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		onRemove(mounted: any) {
 			mounted?.app.unmount();
 			mounted?.wrapper.remove();

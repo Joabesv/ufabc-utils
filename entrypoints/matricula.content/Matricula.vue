@@ -3,7 +3,7 @@ import Teacher from '@/components/Teacher.vue'
 import Cortes from '@/components/Cortes.vue'
 import Modal from './Modal.vue'
 import { toast, Toaster } from 'vue-sonner'
-import { getStudentId, currentUser } from '@/utils/UFMatricula'
+import { getStudentId } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
 import { getComponents, type Component } from '@/services/next'
 import { render } from 'vue'
@@ -114,7 +114,9 @@ function changeCursadas() {
     const name = component.substring(0, component.lastIndexOf(' '))
     if (passed?.includes(name)) {
       $el?.parentElement?.classList.add('isCursada');
-      $el.parentElement.style.display = 'none';
+      if ($el.parentElement) {
+        $el.parentElement.style.display = 'none';
+      }
     }
   }
 }
@@ -128,7 +130,9 @@ function applyFilter(params: Filter) {
         return;
       }
       if (!subject?.includes(params.comparator.toLocaleLowerCase())) {
-        data.parentElement.style.display = 'none';
+        if (data.parentElement) {
+          data.parentElement.style.display = 'none';
+        }
       }
     }
 
@@ -146,13 +150,11 @@ function applyFilter(params: Filter) {
 function openModal(corteId: string) {
   modalState.value.isOpen = true;
   modalState.value.corteId = corteId;
-  console.log('Opening modal', modalState.value);
 }
 
 function closeModal() {
   modalState.value.isOpen = false;
   modalState.value.corteId = null;
-  console.log('closing modal', modalState.value);
 }
 
 function handleClick(event: MouseEvent) {
@@ -162,7 +164,6 @@ function handleClick(event: MouseEvent) {
     if (!corteElement) return;
     const corteId = corteElement.parentElement?.parentElement?.getAttribute("value");
     if (corteId) {
-      console.log('Opening modal with corteId:', corteId);
       openModal(corteId);
     }
   }
