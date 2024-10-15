@@ -146,11 +146,13 @@ function applyFilter(params: Filter) {
 function openModal(corteId: string) {
   modalState.value.isOpen = true;
   modalState.value.corteId = corteId;
+  console.log('Opening modal', modalState.value);
 }
 
 function closeModal() {
   modalState.value.isOpen = false;
   modalState.value.corteId = null;
+  console.log('closing modal', modalState.value);
 }
 
 function handleClick(event: MouseEvent) {
@@ -160,7 +162,7 @@ function handleClick(event: MouseEvent) {
     if (!corteElement) return;
     const corteId = corteElement.parentElement?.parentElement?.getAttribute("value");
     if (corteId) {
-      console.log('here')
+      console.log('Opening modal with corteId:', corteId);
       openModal(corteId);
     }
   }
