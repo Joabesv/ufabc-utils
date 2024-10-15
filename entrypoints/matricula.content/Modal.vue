@@ -1,10 +1,59 @@
 <template>
-  <el-dialog
-    title="Jobe"
-    :modelValue="isOpen"
-    @update:modelValue="closeModal"
-    width="720px"
-  >
+  <el-dialog :title="component?.name ? `Disciplina: ${component.name}` : 'Cortes'" :modelValue="isOpen"
+    @update:modelValue="closeModal" light width="720px">
+    <div v-loading="loading" element-loading="Carregando">
+      <div class="border mb-3 p-2">
+        <div class="flex flex-row items-center">
+          Critérios
+          <el-popover placement="top-start" width="340" trigger="hover" :content="criteriaContent">
+            <template #reference>
+              <v-icon small class="cursor-pointer">info_outline</v-icon>
+            </template>
+          </el-popover>
+        </div>
+        <el-button size="small" type="primary" @click="restore" /> Restaurar ordem
+      </div>
+
+      <!-- VueDraggable -->
+      <h3 class="text-xs mt-2">
+        * Arraste para alterar a ordem dos critérios
+      </h3>
+
+      <div class="border mb-2 p-2">
+        <p class="mb-2">Legenda</p>
+        <div class="flex flex-row" style="justify-content: space-between;">
+          <LegendItem class="bg-[#B7D3FF]" text="Você" />
+          <LegendItem class="bg-[#f95469]" text="Certeza de chute" />
+          <LegendItem class="bg-[#f3a939]" text="Provavelmente será chutado" />
+          <LegendItem class="bg-[#3fcf8c]" text="Provavelmente não será chutado" />
+        </div>
+      </div>
+
+      <el-table :data="transformed" max-height="250" style="width: 100%" empty-text="Não Há Dados"
+        :row-class="tableRowClassName">
+        <el-table-column type="index" width="50" />
+        <el-table-column v-for="header in headers" :key="header.value" :prop="header.value" :label="header.text" />
+      </el-table>
+
+      <div class="flex bg-[#f4f4f5] h-[78px] w-full mt-6 rounded-xl flex-wrap items-center justify-center pt-2 pb-2">
+        <el-alert class="alert-update" :closable="false"
+          title="Mantenha sempre seus dados atualizados para a previsão dos chutes ser mais precisa." type="info"
+          show-icon>
+          <template #default>
+            <a href='https://aluno.ufabc.edu.br/' target='_blank'>Clique aqui para atualizar</a>
+          </template>
+        </el-alert>
+      </div>
+    </div>
+    <template #footer>
+      <div class="flex">
+        <div class="text-left flex-auto">
+          <a class="text-[#ed5167] underline"></a>
+        </div>
+        <i class="information">* Dados baseados nos alunos que utilizam a extensão</i>
+        <el-button @click="closeModal">Fechar</el-button>
+      </div>
+    </template>
   </el-dialog>
 </template>
 
@@ -24,15 +73,21 @@ const props = defineProps<{
 }>();
 const emit = defineEmits(['close']);
 
+type Headers = {
+  text: string;
+  sortable: boolean;
+  value: string;
+}
+
 const loading = ref(false)
 const kicks = ref([])
-const headers = ref([])
+const headers = ref<Headers[]>([])
 
 const criteriaContent = "Os critérios são definidos com base nos critérios abaixo e seu peso, você pode alterar o peso arrastando o critérios para que fiquem na ordem desejada."
 
 async function fetch() {
   const corteId = props.corteId ?? ''
-  if(!corteId) {
+  if (!corteId) {
     return
   }
 
@@ -44,8 +99,8 @@ async function fetch() {
     kicks.value = res
     console.log(res)
     resort()
-  } catch(error: any) {
-    if(error.name === 'forbidden') {
+  } catch (error: any) {
+    if (error.name === 'forbidden') {
       ElNotification({
         message: 'Não temos as disciplinas que você cursou, acesse o Sigaa'
       })
@@ -59,30 +114,18 @@ function closeModal() {
   emit('close');
 }
 
-function resort() {
-  const sortOrder = headers.value.map(h => h.value)
-  const sortRef = Array(sortOrder.length).fill('desc')
-  
-  const turnoIndex = sortOrder.indexOf('turno')
-  if (turnoIndex !== -1) {
-    sortRef[turnoIndex] = component.value?.turno === 'diurno' ? 'asc' : 'desc'
-  }
+const component = computed(() => parserComponents?.find(c => c.UFComponentId === Number(props.corteId)))
 
-  kicks.value = orderBy(kicks.value, sortOrder, sortRef)
-}
-
-const removedFilter = (value) => {
-  headers.value = headers.value.filter(h => h.value !== value)
-  resort()
-}
-
-const restore = () => {
-  headers.value = defaultHeaders.value
-  resort()
-}
+const transformed = computed(() => {
+  return kicks.value.map(d => ({
+    ...d,
+    reserva: d.reserva ? 'Sim' : 'Não',
+    ik: d.ik.toFixed(3)
+  }))
+})
 
 const defaultHeaders = computed(() => {
-  const isIdeal = findIdeais().includes(component.value?.UFComponentCode!)
+  const isIdeal = findIdeais().includes(component.value?.UFComponentCode ?? '')
   const base = [
     { text: 'Reserva', sortable: false, value: 'reserva' },
     { text: 'Turno', value: 'turno', sortable: false },
@@ -110,17 +153,48 @@ const computeKicksForecast = computed(() => {
   return (kicks.value.length * component?.value?.vacancies) / getRequests.value
 })
 
-const component = computed(() => parserComponents?.find(c => c.UFComponentId === Number(props.corteId)))
+function resort() {
+  const sortOrder = headers.value.map(h => h.value)
+  const sortRef = Array(sortOrder.length).fill('desc')
+
+  const turnoIndex = sortOrder.indexOf('turno')
+  if (turnoIndex !== -1) {
+    sortRef[turnoIndex] = component.value?.turno === 'diurno' ? 'asc' : 'desc'
+  }
+
+  kicks.value = orderBy(kicks.value, sortOrder, sortRef)
+}
+
+const removedFilter = (value: string) => {
+  headers.value = headers.value.filter(h => h.value !== value)
+  resort()
+}
+
+const restore = () => {
+  headers.value = defaultHeaders.value
+  resort()
+}
+
+const tableRowClassName = ({ row, rowIndex }: any) => {
+  console.log(row, rowIndex)
+  if (row.aluno_id === 557736) {
+    return 'aluno-row'
+  } if (rowIndex <= computeKicksForecast.value) {
+    return 'not-kicked-row'
+  } if (rowIndex >= component.value?.vacancies) {
+    return 'kicked-row'
+  }
+  return 'probably-kicked-row'
+}
 
 watch(() => props.isOpen, (newIsOpen) => {
-  console.log('hearing', newIsOpen)
-
-  if(newIsOpen && props.corteId) {
-    console.log('should work')
+  if (newIsOpen && props.corteId) {
+    headers.value = defaultHeaders.value
+    fetch()
   }
 })
 
-onMounted(() => {
-  // Any initialization if needed
+onMounted(async () => {
+  await fetch()
 });
 </script>
