@@ -36,6 +36,19 @@ type UFCurriculumComponents = {
 	components: UFComponent[];
 };
 
+export type UFSeasonComponents = {
+	UFComponentId: number
+	UFComponentCode: string;
+	name: string
+	campus: 'sbc' | 'sa'
+	turma: string
+	turno: 'diurno' | 'noturno'
+	credits: number
+	vacancies: number
+	courses: Array<{ name: string; UFCourseId: number; category: 'limited' | 'mandatory' }>
+	hours: unknown
+}
+
 const ufParserService = ofetch.create({
 	baseURL: import.meta.env.VITE_UFABC_PARSER_URL,
 });
@@ -43,6 +56,7 @@ const ufParserService = ofetch.create({
 const COURSES_CACHE = "ufCoursesCache";
 const COURSE_CURRICULUM_CACHE = "ufCourseCurriculums";
 const CURRICULUM_COMPONENTS_CACHE = "ufCurriculumComponents";
+const UF_COMPONENTS_CACHE = 'ufComponents'
 
 export async function getUFCourses() {
 	const cachedCourses = await storage.getItem<UFCourses[]>(
@@ -112,4 +126,14 @@ export async function getUFEnrolled() {
 	}
 
 	return result;
+}
+
+export async function getUFComponents() {
+	const cachedComponents = await storage.getItem<UFSeasonComponents[]>(`local:${UF_COMPONENTS_CACHE}`)
+	if (cachedComponents) {
+		return cachedComponents
+	}
+	const ufComponents = await ufParserService<UFSeasonComponents[]>("/components");
+	await storage.setItem(`local:${UF_COMPONENTS_CACHE}`, ufComponents)
+	return ufComponents
 }

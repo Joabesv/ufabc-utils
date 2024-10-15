@@ -77,7 +77,7 @@ function changeSelected() {
     console.log('show some message to the user')
     return
   } 
-  const enrollments = matriculas?.[studentId] || []
+  const enrollments = matriculas?.[557736] || []
   const tableRows = document.querySelectorAll('tr')
 
   for(const $row of tableRows) {

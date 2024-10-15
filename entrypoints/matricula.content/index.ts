@@ -1,7 +1,7 @@
 import Matricula from "./Matricula.vue";
 import type { ContentScriptContext } from "wxt/client";
 import "./style.css";
-import { getUFEnrolled } from "@/services/UFParser";
+import { getUFComponents, getUFEnrolled } from "@/services/UFParser";
 
 export default defineContentScript({
 	async main(ctx) {
@@ -39,14 +39,16 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 			const wrapper = document.createElement("div");
 			container.append(wrapper);
 			const matriculas = await getUFEnrolled();
+			const ufParserComponents = await getUFComponents();
 			window.matriculas = matriculas;
 			const app = createApp(Matricula);
 			app.provide("matriculas", window.matriculas);
+			app.provide('parserComponents', ufParserComponents)
 
 			app.mount(wrapper);
 			return { app, wrapper };
 		},
-		onRemove(mounted) {
+		onRemove(mounted: any) {
 			mounted?.app.unmount();
 			mounted?.wrapper.remove();
 		},
