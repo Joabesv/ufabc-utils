@@ -48,3 +48,15 @@ export async function enrollmentsComponents(lastCall: number) {
 		await getComponents();
 	}
 }
+
+export async function getComponentKicks(componentId: number, studentId: number){
+	try {
+		const kicksData = await nextService(`/entities/components/${componentId}/kicks?studentId=${studentId}`)
+		return kicksData
+	} catch(error: any) {
+		if (error.name === 'Forbidden') {
+			console.log('deu nao pai')
+		}
+		console.log(error)
+	}
+}

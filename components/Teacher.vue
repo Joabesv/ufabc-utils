@@ -24,5 +24,7 @@
 <script setup lang="ts">
 import type { Component } from '@/services/next';
 
-defineProps<Component>();
+type TeacherProps = Pick<Component, 'teoria' | 'teoriaId' | 'pratica' | 'praticaId'>
+
+defineProps<TeacherProps>();
 </script>
