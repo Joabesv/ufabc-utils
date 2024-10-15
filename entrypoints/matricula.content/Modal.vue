@@ -62,13 +62,16 @@
         </template>
       </el-alert>
     </div>
+
     <template #footer>
       <div class="flex">
         <div class="text-left flex-auto">
-          <a class="text-[#ed5167] underline"></a>
+          <a class="text-[#ed5167] underline" href='https://bit.ly/extensao-problemas' target='_blank'>
+            Está com problemas com a extensão? <br />Clique aqui
+          </a>
         </div>
-        <i class="information">* Dados baseados nos alunos que utilizam a extensão</i>
-        <el-button @click="closeModal">Fechar</el-button>
+        <i class="text-black/60 inline-flex text-xs flex-row mr-4">* Dados baseados nos alunos que utilizam a
+          extensão</i>
       </div>
     </template>
   </el-dialog>
@@ -236,5 +239,13 @@ next-dialog .el-dialog__body {
 
 .el-table .not-kicked-row {
   color: #3fcf8c !important;
+}
+
+.update-alert .el-alert__content {
+  padding-left: 16px !important;
+}
+
+.el-dialog__footer {
+  padding-top: 4rem;
 }
 </style>
