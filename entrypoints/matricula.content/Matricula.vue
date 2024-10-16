@@ -2,6 +2,7 @@
 import Teacher from '@/components/Teacher.vue'
 import Cortes from '@/components/Cortes.vue'
 import Modal from './Modal.vue'
+import SubjectReview from './SubjectReview.vue'
 import { toast, Toaster } from 'vue-sonner'
 import { getStudentId } from '@/utils/UFMatricula'
 import { useStorage } from '@/composables/useStorage'
@@ -28,7 +29,10 @@ const modalState = ref<{ isOpen: boolean; corteId: string | null }>({
   corteId: null
 })
 
-provide('modalState', modalState)
+const subjectReviewState = ref<{ isOpen: boolean; subjectId: string | null }>({
+  isOpen: false,
+  subjectId: null
+})
 
 const campusFilters = ref<Filter[]>([
   {
@@ -146,7 +150,6 @@ function applyFilter(params: Filter) {
   }
 }
 
-
 function openModal(corteId: string) {
   modalState.value.isOpen = true;
   modalState.value.corteId = corteId;
@@ -157,14 +160,31 @@ function closeModal() {
   modalState.value.corteId = null;
 }
 
+function openSubjectReview(subjectId: string) {
+  subjectReviewState.value.isOpen = true;
+  subjectReviewState.value.subjectId = subjectId;
+}
+
+function closeSubjectReview() {
+  subjectReviewState.value.isOpen = false;
+  subjectReviewState.value.subjectId = null;
+}
+
 function handleClick(event: MouseEvent) {
   const target = event.target as HTMLElement;
+  console.log(target)
   if (target.closest("#cortes")) {
     const corteElement = target.closest("#cortes");
     if (!corteElement) return;
     const corteId = corteElement.parentElement?.parentElement?.getAttribute("value");
     if (corteId) {
       openModal(corteId);
+    }
+  } else if (target.matches('span.sa, span.sbc')) {
+    const subjectId = target.getAttribute('subjectId');
+    console.log('whats up')
+    if (subjectId) {
+      openSubjectReview(subjectId);
     }
   }
 }
@@ -297,5 +317,9 @@ onUnmounted(() => {
       </el-popover>
     </section>
   </div>
+
   <Modal :is-open="modalState.isOpen" :corte-id="modalState.corteId" @close="closeModal" />
+  <SubjectReview :is-open="subjectReviewState.isOpen" :subject-id="subjectReviewState.subjectId"
+    @close="closeSubjectReview" />
+
 </template>
