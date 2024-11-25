@@ -172,7 +172,6 @@ function closeSubjectReview() {
 
 function handleClick(event: MouseEvent) {
   const target = event.target as HTMLElement;
-  console.log(target)
   if (target.closest("#cortes")) {
     const corteElement = target.closest("#cortes");
     if (!corteElement) return;
@@ -182,7 +181,6 @@ function handleClick(event: MouseEvent) {
     }
   } else if (target.matches('span.sa, span.sbc')) {
     const subjectId = target.getAttribute('subjectId');
-    console.log('whats up')
     if (subjectId) {
       openSubjectReview(subjectId);
     }
@@ -232,8 +230,18 @@ async function buildComponents() {
       continue;
     }
 
-    if (component.subject) {
-      subjectEl?.setAttribute('subjectId', component.subjectId);
+    if (component.subject && subjectEl) {
+      subjectEl.style.cursor = 'pointer'
+
+      subjectEl.addEventListener('mouseenter', () => {
+        subjectEl.style.textDecoration = 'underline';
+      });
+
+      subjectEl.addEventListener('mouseleave', () => {
+        subjectEl.style.textDecoration = 'none';
+      });
+
+      subjectEl.setAttribute('subjectId', component.subjectId);
     }
 
     const teacherContainer = document.createElement('div')
