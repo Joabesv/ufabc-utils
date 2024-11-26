@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { getSubjectReviews, type Grade, type SubjectReview } from '@/services/next'
-import { sortBy } from 'lodash-es';
 import { Chart } from 'highcharts-vue';
 import Highcharts3D from 'highcharts/highcharts-3d'
 import Highcharts from 'highcharts';
@@ -22,6 +21,9 @@ const filterSelected = ref(null)
 const chartOptions = ref({
   chart: {
     type: "pie",
+    plotBackgroundColor: null,
+    plotBorderWidth: null,
+    plotShadow: false,
     options3d: {
       enabled: true,
       alpha: 45
