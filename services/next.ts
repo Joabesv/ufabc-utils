@@ -17,13 +17,65 @@ export type Component = {
 	praticaId?: string;
 };
 
+export type Grade = "A" | "B" | "C" | "D" | "O" | "F";
+
+type Distribution = {
+	conceito: Grade;
+	weight: number;
+	count: number;
+	cr_medio: number;
+	numeric: number;
+	numericWeight: number;
+	amount: number;
+	cr_professor: number;
+};
+
+type DetailedReviews = {
+	_id: {
+		mainTeacher: string;
+	};
+	distribution: Array<Distribution>;
+	numericWeight: number;
+	numeric: number;
+	amount: number;
+	count: number;
+	cr_professor: number;
+	cr_medio: number;
+	teacher: {
+		_id: string;
+		name: string;
+		alias: string[] | null;
+	};
+};
+
+export type SubjectReview = {
+	subject: {
+		_id: string;
+		name: string;
+		search: string;
+		updatedAt: string;
+		creditos: number;
+	};
+	general: {
+		distribution: Array<Distribution>;
+		cr_medio: number;
+		cr_professor: number;
+		count: number;
+		amount: number;
+		numeric: number;
+		numericWeight: number;
+		weight: number;
+	};
+	specific: Array<DetailedReviews>;
+};
+
 function resolveEndpoint(env: string) {
 	return (
 		{
-			development: "http://localhost:5000/v2",
+			development: "http://localhost:5000",
 			staging: "https://ufabc-matricula-test.cdd.naoseiprogramar.com.br/v1",
 			production: "https://api.v2.ufabcnext.com/v2",
-		}[env] || "http://localhost:5000/v2"
+		}[env] || "http://localhost:5000"
 	);
 }
 
@@ -49,14 +101,26 @@ export async function enrollmentsComponents(lastCall: number) {
 	}
 }
 
-export async function getComponentKicks(componentId: number, studentId: number){
+export async function getComponentKicks(
+	componentId: number,
+	studentId: number,
+) {
 	try {
-		const kicksData = await nextService(`/entities/components/${componentId}/kicks?studentId=${studentId}`)
-		return kicksData
-	} catch(error: any) {
-		if (error.name === 'Forbidden') {
-			console.log('deu nao pai')
+		const kicksData = await nextService(
+			`/entities/components/${componentId}/kicks?studentId=${studentId}`,
+		);
+		return kicksData;
+	} catch (error: any) {
+		if (error.name === "Forbidden") {
+			console.log("deu nao pai");
 		}
-		console.log(error)
+		console.log(error);
 	}
+}
+
+export async function getSubjectReviews(subjectId: string) {
+	const reviews = await nextService<SubjectReview>(
+		`/entities/subjects/reviews/${subjectId}`,
+	);
+	return reviews;
 }

@@ -1,7 +1,11 @@
 import Matricula from "./Matricula.vue";
+import HighchartsVue from "highcharts-vue";
+import Highcharts from "highcharts";
+import annotationsInit from "highcharts/modules/annotations";
+import accessibility from "highcharts/modules/accessibility";
+import { getUFComponents, getUFEnrolled } from "@/services/UFParser";
 import type { ContentScriptContext } from "wxt/client";
 import "./style.css";
-import { getUFComponents, getUFEnrolled } from "@/services/UFParser";
 
 export default defineContentScript({
 	async main(ctx) {
@@ -41,6 +45,12 @@ async function mountMatriculaFilters(ctx: ContentScriptContext) {
 			const ufParserComponents = await getUFComponents();
 			window.matriculas = matriculas;
 			const app = createApp(Matricula);
+
+			accessibility(Highcharts);
+			annotationsInit(Highcharts);
+
+			app.use(HighchartsVue);
+
 			app.provide("matriculas", window.matriculas);
 			app.provide("parserComponents", ufParserComponents);
 
