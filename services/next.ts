@@ -17,17 +17,47 @@ export type Component = {
 	praticaId?: string;
 };
 
+export type Grade = "A" | "B" | "C" | "D" | "O" | "F";
+
+type Distribution = {
+	conceito: Grade;
+	weight: number;
+	count: number;
+	cr_medio: number;
+	numeric: number;
+	numericWeight: number;
+	amount: number;
+	cr_professor: number;
+};
+
+type DetailedReviews = {
+	_id: {
+		mainTeacher: string;
+	};
+	distribution: Array<Distribution>;
+	numericWeight: number;
+	numeric: number;
+	amount: number;
+	count: number;
+	cr_professor: number;
+	cr_medio: number;
+	teacher: {
+		_id: string;
+		name: string;
+		alias: string[] | null;
+	};
+};
+
 export type SubjectReview = {
 	subject: {
 		_id: string;
 		name: string;
 		search: string;
 		updatedAt: string;
-		createdAt: string;
-		__v: number;
 		creditos: number;
 	};
 	general: {
+		distribution: Array<Distribution>;
 		cr_medio: number;
 		cr_professor: number;
 		count: number;
@@ -35,45 +65,8 @@ export type SubjectReview = {
 		numeric: number;
 		numericWeight: number;
 		weight: number;
-		distribution: Array<{
-			conceito: "A" | "B" | "C" | "D" | "F" | "O";
-			cr_medio: number;
-			cr_professor: number;
-			count: number;
-			amount: number;
-			numeric: number;
-			numericWeight: number;
-			weight: 0;
-		}>;
 	};
-	specific: Array<{
-		_id: {
-			mainTeacher: string;
-		};
-		distribution: Array<{
-			conceito: "A" | "B" | "C" | "D" | "F" | "O";
-			cr_medio: number;
-			count: number;
-			amount: number;
-			numeric: number;
-			numericWeight: number;
-			weight: 0;
-		}>;
-		numericWeight: number;
-		numeric: number;
-		amount: number;
-		count: number;
-		cr_professor: number;
-		cr_medio: number;
-		teacher: {
-			alias: string[];
-			_id: string;
-			name: string;
-			updatedAt: string;
-			createdAt: string;
-			__v: number;
-		};
-	}>;
+	specific: Array<DetailedReviews>;
 };
 
 function resolveEndpoint(env: string) {

@@ -1,36 +1,39 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { Chart, type ChartProps } from 'highcharts-vue'
-import Highcharts from 'highcharts'
+import { getSubjectReviews, type Grade, type SubjectReview } from '@/services/next'
+import { sortBy } from 'lodash-es';
+import { Chart } from 'highcharts-vue';
 import Highcharts3D from 'highcharts/highcharts-3d'
-import { getSubjectReviews, type SubjectReview } from '@/services/next'
-import { sortBy } from 'lodash-es'
+import Highcharts from 'highcharts';
 
-Highcharts3D(Highcharts)
-
-type ChartOptions = ChartProps['options']
+Highcharts3D(Highcharts);
 
 const props = defineProps<{
   isOpen: boolean
   subjectId: string | null
 }>()
-const emit = defineEmits(['close'])
 
-const chartOptions = ref<ChartOptions>({
+
+const emit = defineEmits(['close'])
+const subjectDistributionData = ref<SubjectReview | null>(null)
+const loading = ref(false);
+const samplesCount = ref<number | undefined>();
+const filterSelected = ref(null)
+const chartOptions = ref({
   chart: {
-    type: 'pie',
+    type: "pie",
     options3d: {
       enabled: true,
-      alpha: 45,
+      alpha: 45
     },
     width: 380,
-    height: 240,
+    height: 240
   },
   title: {
-    text: '',
+    text: ''
   },
   tooltip: {
-    pointFormat: 'Porcentagem: <b>{point.percentage:.1f}%</b>',
+    pointFormat: 'Porcentagem: <b>{point.percentage:.1f}%</b>'
   },
   plotOptions: {
     pie: {
@@ -42,143 +45,157 @@ const chartOptions = ref<ChartOptions>({
       cursor: 'pointer',
       dataLabels: {
         format: '{key}: <b>{point.percentage:.1f}%</b>',
-        enabled: true,
+        enabled: true
       },
-      showInLegend: true,
-    },
+      showInLegend: true
+    }
   },
-  series: [],
-})
+  series: []
+});
 
-const highcharts = ref(Highcharts)
-const subjectInfo = ref<SubjectReview | null>(null)
-const loading = ref(false)
-const filterSelected = ref(null)
-const samplesCount = ref<number | null>(null)
-const chart = useTemplateRef('subject-chart')
 
-const subject = computed(() => subjectInfo.value?.subject?.name ?? '')
+const subject = computed(() => subjectDistributionData.value?.subject.name ?? '')
 
 const possibleComponents = computed(() => {
-  const components = subjectInfo.value?.specific;
+  if (!subjectDistributionData.value) {
+    return []
+  }
+  const components: any[] = [...subjectDistributionData.value.specific];
   const generalDefaults = {
     _id: {
       _id: 'all',
-      name: 'Todas as matérias',
-    },
-  };
-  const general = Object.assign(generalDefaults, subjectInfo.value?.general);
-  components.push(general);
+      name: 'Todas as matérias'
+    }
+  }
 
-  return components.reverse();
+  const general = Object.assign(generalDefaults, subjectDistributionData.value?.general)
+  components?.push(general)
+  return components.reverse()
 })
 
 function closeDialog() {
-  emit('close')
   filterSelected.value = null
-  subjectInfo.value = null
+  subjectDistributionData.value = null;
   samplesCount.value = 0
+  emit('close')
 }
 
-function resolveColorForConcept(concept: string) {
-  return (
-    {
-      A: '#3fcf8c',
-      B: '#b8e986',
-      C: '#f8b74c',
-      D: '#ffa004',
-      F: '#f95469',
-      O: '#A9A9A9',
-    }[concept] || '#A9A9A9'
-  );
+function resolveColorForConcept(grade: Grade) {
+  return {
+    'A': '#3fcf8c',
+    'B': '#b8e986',
+    'C': '#f8b74c',
+    'D': '#ffa004',
+    'F': '#f95469',
+    'O': '#A9A9A9'
+  }[grade] || '#A9A9A9'
 }
 
-async function fetchSubjectInfo(subjectId: string) {
+
+async function setupSubjectStats(subjectId: string) {
+  if (!subjectId) {
+    return
+  }
+
   loading.value = true
+
   try {
     const reviews = await getSubjectReviews(subjectId)
-    subjectInfo.value = reviews
-    loading.value = false
-    filterSelected.value = possibleComponents.value[0]._id._id
-    console.log(subjectInfo.value, possibleComponents.value)
-    if (reviews.general.count || 0) {
-      console.log('here?')
-      setTimeout(() => updateFilter(), 500)
+    subjectDistributionData.value = reviews
+
+    if (possibleComponents.value.length > 0) {
+      filterSelected.value = possibleComponents.value[0]._id._id
     }
+
+    if (reviews.general.count) {
+      setTimeout(() => {
+        updateFilter();
+      }, 500)
+    }
+
   } catch (error) {
-    loading.value = false
-    console.log('reveiw subject error', error)
+    console.log(error)
     closeDialog()
+  } finally {
+    loading.value = false;
   }
 }
 
 function updateFilter() {
-  // if (!chart.value) return;
+  if (!subjectDistributionData.value) {
+    return
+  }
 
-  console.log(chart)
+  let filter = subjectDistributionData.value.general
+  if (filterSelected.value !== 'all') {
+    filter = subjectDistributionData.value.specific.find(
+      specific => specific._id._id === filterSelected.value
+    ) ?? subjectDistributionData.value.general
+  }
 
-  chart.value.delegateMethod('showLoading', 'Carregando...');
+  const gradesFiltered = filter.distribution.map(grade => ({
+    name: grade.conceito,
+    y: grade.count,
+    color: resolveColorForConcept(grade.conceito)
+  }))
 
-  setTimeout(() => {
-    chart.value.removeSeries();
-    let filter;
-    if (filterSelected.value === 'all') {
-      filter = subjectInfo.value?.general;
-    } else {
-      filter = subjectInfo.value?.specific?.find((specific) =>
-        specific._id._id === filterSelected.value
-      );
+  samplesCount.value = filter.count
+
+
+  chartOptions.value = {
+    ...chartOptions.value,
+    series: [{
+      name: 'Conceito',
+      data: gradesFiltered
+    }],
+    plotOptions: {
+      colors: gradesFiltered.map(grade => resolveColorForConcept(grade.name))
     }
-
-    const filteredConcepts = [];
-    const distributionConcepts = filter.distribution;
-
-    for (const { conceito, count } of distributionConcepts) {
-      filteredConcepts.push({
-        name: conceito,
-        y: count,
-        color: resolveColorForConcept(conceito),
-      });
-    }
-
-    samplesCount.value = filter.count;
-
-    chart.value.addSeries({
-      data: sortBy(filteredConcepts, 'name'),
-    });
-
-    chart.value.hideLoading();
-  }, 500);
+  }
 }
-
 
 watch(() => props.subjectId, async (newSubjectId) => {
   if (newSubjectId) {
-    await fetchSubjectInfo(newSubjectId)
+    await setupSubjectStats(newSubjectId)
   }
-}, { immediate: true, deep: true })
+}, { immediate: true })
+
+watch(filterSelected, () => {
+  if (subjectDistributionData.value) {
+    updateFilter()
+  }
+})
+
 </script>
 
 
 <template>
-  <el-dialog @close="closeDialog" :model-value="isOpen" width="800px" top="2vh" class="mt-1" :title="subject">
-    <div v-if="loading || subjectInfo?.specific?.length" class="min-h-[200px]" v-loading="loading">
-      <span class="text-center mt-4" v-if="samplesCount >= 0">
+  <el-dialog @close="closeDialog" :model-value="isOpen" :title="'Disciplina: ' + subject" :visible="isOpen"
+    width="800px" top="2vh">
+    <div v-if="loading || (subjectDistributionData?.specific?.length ?? 0) > 0" v-loading="loading"
+      element-loading="Carregando">
+      <div v-if="samplesCount !== undefined" class="text-center my-4">
         Total de amostras <b>{{ samplesCount }}</b>
-      </span>
+      </div>
 
-      <Chart class="flex flex-row items-center justify-center" v-if="subjectInfo?.specific?.length"
-        :options="chartOptions" :highcharts="highcharts" ref="subject-chart"></Chart>
+      <Chart :options="chartOptions" :highcharts="Highcharts" class="flex flex-row items-center justify-center" />
 
-      <!-- TeacherList -->
+      <div v-if="possibleComponents.length > 0" class="mt-4">
+        <el-select v-model="filterSelected" placeholder="Selecione um filtro" @change="updateFilter">
+          <el-option v-for="component in possibleComponents" :key="component._id._id" :label="component._id.name"
+            :value="component._id._id" />
+        </el-select>
+      </div>
     </div>
-    <div class="flex flex-row items-center justify-center">
-      Nenhum Dado Encontrado
+
+
+    <div v-else class="flex flex-row overflow-y-auto overflow-x-hidden items-center justify-center min-h-24">
+      Nenhum dado encontrado
     </div>
+
     <template #footer>
-      <span class="flex" ref="end-ref">
-        <i class="text-black/60 inline-flex text-xs flex-row mr-4">* Dados baseados nos alunos que utilizam a
-          extensão</i>
+      <span class="text-xs text-gray-500">
+        * Dados baseados nos alunos que utilizam a extensão
       </span>
     </template>
   </el-dialog>
